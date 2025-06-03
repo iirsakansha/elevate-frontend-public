@@ -173,6 +173,80 @@ export const PredictionForm = () => {
   };
 
 
+  // const handleFormSubmit = () => {
+  //   return currentStep < stepperSize - 1
+  //     ? currentStep === 0
+  //       ? !error &&
+  //       form1.validateFields().then((value) => {
+  //         if (!value.isLoadSplitFile?.file?.response?.file) {
+  //           setError("Data File is not uploaded");
+  //         }
+  //         else {
+  //           setFormData({ ...formData, form1: value });
+  //           setCurrentStep(currentStep + 1);
+  //         }
+
+  //       })
+  //       : currentStep === 1
+  //         ? !error &&
+  //         form2.validateFields().then((value) => {
+  //           setFormData({ ...formData, form2: value });
+  //           setCurrentStep(currentStep + 1);
+  //         })
+  //         : form3.validateFields().then((value) => {
+  //           setFormData({ ...formData, form3: value });
+  //           setCurrentStep(currentStep + 1);
+  //         })
+  //     : !error &&
+  //     form4.validateFields().then(async (value) => {
+  //       setFormData({ ...formData, form4: value });
+  //       const bodyData = {
+  //         ...formData.form1,
+  //         ...formData.form2,
+  //         ...formData.form3,
+  //         ...value,
+  //       };
+  //       dispatch(
+  //         getAnalysisResult(
+  //           {
+  //             user_name:profile?.username,
+  //             ...formData.form1,
+  //             ...formData.form2,
+  //             ...formData.form3,
+  //             ...value,
+  //             date1_start: moment(value.summerDate[0]).format("MMM-DD"),
+  //             date2_start: moment(value.winterDate[0]).format("MMM-DD"),
+  //             date1_end: moment(value.summerDate[1]).format("MMM-DD"),
+  //             date2_end: moment(value.winterDate[1]).format("MMM-DD"),
+  //             s_pks: moment(value.s_pks).format("HH:mm"),
+  //             s_pke: moment(value.s_pke).format("HH:mm"),
+  //             w_pks: moment(value.w_pks).format("HH:mm"),
+  //             w_pke: moment(value.w_pke).format("HH:mm"),
+  //             s_ops: moment(value.s_ops).format("HH:mm"),
+  //             s_ope: moment(value.s_ope).format("HH:mm"),
+  //             w_ops: moment(value.w_ops).format("HH:mm"),
+  //             w_ope: moment(value.w_ope).format("HH:mm"),
+  //             isLoadSplitFile:
+  //               bodyData?.isLoadSplitFile?.file?.response?.file || null,
+  //             fileId: bodyData?.isLoadSplitFile?.file?.response?.id || null,
+  //             ...(bodyData.categoryData[0].categoryFile && {
+  //               categoryData: bodyData.categoryData.map((category) => {
+  //                 return {
+  //                   ...category,
+  //                   categoryFile:
+  //                     category.categoryFile?.file?.response?.file,
+  //                 };
+  //               }),
+  //             }),
+  //           },
+  //           () => {
+  //             history.push("/analysis-result");
+  //           }
+  //         )
+  //       );
+  //     });
+  // };
+
   const handleFormSubmit = () => {
     return currentStep < stepperSize - 1
       ? currentStep === 0
@@ -180,12 +254,10 @@ export const PredictionForm = () => {
         form1.validateFields().then((value) => {
           if (!value.isLoadSplitFile?.file?.response?.file) {
             setError("Data File is not uploaded");
-          }
-          else {
+          } else {
             setFormData({ ...formData, form1: value });
             setCurrentStep(currentStep + 1);
           }
-
         })
         : currentStep === 1
           ? !error &&
@@ -200,52 +272,79 @@ export const PredictionForm = () => {
       : !error &&
       form4.validateFields().then(async (value) => {
         setFormData({ ...formData, form4: value });
-        const bodyData = {
+
+        // Convert categoryData and vehicleCategoryData
+        const convertCategoryData = (data) =>
+          data.map((item) => {
+            const converted = {
+              ...item,
+              specifySplit: parseFloat(item.specifySplit),
+              salesCAGR: parseFloat(item.salesCAGR)
+            };
+            return converted;
+          });
+
+        const convertVehicleData = (data) =>
+          data.map((vehicle) => {
+            const converted = { vehicleCategory: vehicle.vehicleCategory };
+            Object.keys(vehicle).forEach((key) => {
+              if (key !== "vehicleCategory") {
+                converted[key] = parseFloat(vehicle[key]);
+              }
+            });
+            return converted;
+          });
+
+        const loadCategoryInt = parseInt(formData.form1?.loadCategory || value.loadCategory, 10);
+        const resolutionInt = parseInt(formData.form3?.resolution || value.resolution, 10);
+        const sharedSavaingInt = parseInt(formData.form3?.sharedSavaing || value.sharedSavaing, 10);
+        const sum_pk_cost = parseInt(formData.form3?.sum_pk_cost || value.sum_pk_cost, 10);
+        const sum_zero_cost = parseInt(formData.form3?.sum_zero_cost || value.sum_zero_cost, 10);
+        const sum_op_cost = parseInt(formData.form3?.sum_op_cost || value.sum_op_cost, 10);
+        const win_pk_cost = parseInt(formData.form3?.win_pk_cost || value.win_pk_cost, 10);
+        const win_zero_cost = parseInt(formData.form3?.win_zero_cost || value.win_zero_cost, 10);
+        const win_op_cost = parseInt(formData.form3?.win_op_cost || value.win_op_cost, 10);
+
+
+        const combinedData = {
           ...formData.form1,
           ...formData.form2,
           ...formData.form3,
           ...value,
+          categoryData: convertCategoryData(formData.form1?.categoryData || []),
+          vehicleCategoryData: convertVehicleData(formData.form2?.vehicleCategoryData || []),
+          loadCategory: loadCategoryInt,
+          resolution: resolutionInt,
+          sharedSavaing: sharedSavaingInt,
+          sum_pk_cost,
+          sum_zero_cost,
+          sum_op_cost,
+          win_pk_cost,
+          win_zero_cost,
+          win_op_cost,
+          date1_start: moment(value.summerDate?.[0]).format("MMM-DD"),
+          date1_end: moment(value.summerDate?.[1]).format("MMM-DD"),
+          date2_start: moment(value.winterDate?.[0]).format("MMM-DD"),
+          date2_end: moment(value.winterDate?.[1]).format("MMM-DD"),
+          s_pks: moment(value.s_pks).format("HH:mm"),
+          s_pke: moment(value.s_pke).format("HH:mm"),
+          w_pks: moment(value.w_pks).format("HH:mm"),
+          w_pke: moment(value.w_pke).format("HH:mm"),
+          s_ops: moment(value.s_ops).format("HH:mm"),
+          s_ope: moment(value.s_ope).format("HH:mm"),
+          w_ops: moment(value.w_ops).format("HH:mm"),
+          w_ope: moment(value.w_ope).format("HH:mm"),
+          isLoadSplitFile: formData.form1?.isLoadSplitFile?.file?.response?.file || null,
+          fileId: formData.form1?.isLoadSplitFile?.file?.response?.id || null,
         };
-        dispatch(
-          getAnalysisResult(
-            {
-              user_name:profile?.username,
-              ...formData.form1,
-              ...formData.form2,
-              ...formData.form3,
-              ...value,
-              date1_start: moment(value.summerDate[0]).format("MMM-DD"),
-              date2_start: moment(value.winterDate[0]).format("MMM-DD"),
-              date1_end: moment(value.summerDate[1]).format("MMM-DD"),
-              date2_end: moment(value.winterDate[1]).format("MMM-DD"),
-              s_pks: moment(value.s_pks).format("HH:mm"),
-              s_pke: moment(value.s_pke).format("HH:mm"),
-              w_pks: moment(value.w_pks).format("HH:mm"),
-              w_pke: moment(value.w_pke).format("HH:mm"),
-              s_ops: moment(value.s_ops).format("HH:mm"),
-              s_ope: moment(value.s_ope).format("HH:mm"),
-              w_ops: moment(value.w_ops).format("HH:mm"),
-              w_ope: moment(value.w_ope).format("HH:mm"),
-              isLoadSplitFile:
-                bodyData?.isLoadSplitFile?.file?.response?.file || null,
-              fileId: bodyData?.isLoadSplitFile?.file?.response?.id || null,
-              ...(bodyData.categoryData[0].categoryFile && {
-                categoryData: bodyData.categoryData.map((category) => {
-                  return {
-                    ...category,
-                    categoryFile:
-                      category.categoryFile?.file?.response?.file,
-                  };
-                }),
-              }),
-            },
-            () => {
-              history.push("/analysis-result");
-            }
-          )
-        );
+
+        dispatch(getAnalysisResult(combinedData, () => {
+          console.log("Dispatched getAnalysisResult");
+          history.push("/analysis-result");
+        }));
       });
   };
+
   return (
     <>
       {isanalysisLoading ? (
@@ -420,9 +519,9 @@ export const PredictionForm = () => {
                       style={{ marginBottom: "2rem" }}
                     >
                       <Col span={24}>
-                          <span className="ant-download ant-download-select">
-                            <a href={sempleExcelFile} download><FileDownloadIcon />Download sample file</a>
-                          </span>
+                        <span className="ant-download ant-download-select">
+                          <a href={sempleExcelFile} download><FileDownloadIcon />Download sample file</a>
+                        </span>
                         <Form.Item
                           className="upload_field"
                           label="Upload the 
@@ -435,7 +534,7 @@ export const PredictionForm = () => {
                             },
                           ]}
                         >
-                         <Upload {...uploadProps} disabled={isanalysisLoading}>
+                          <Upload {...uploadProps} disabled={isanalysisLoading}>
                             <FileUploadIcon />
                             <p className="upload_field_text">
                               The file format could be Excel/CSV.
@@ -454,7 +553,7 @@ export const PredictionForm = () => {
                       <>
                         {fields.map((field, index) => {
                           return (
-                            <Row gutter={20} className="split_row">
+                            <Row gutter={20} className="split_row" key={field.key}>
                               <Col
                                 ant-col-xs-24 ant-col-md-8
                                 xs={{ span: 24 }}
@@ -478,6 +577,7 @@ export const PredictionForm = () => {
                                   >
                                     {categoryOptions.map((option) => (
                                       <Option
+                                        key={option.value}
                                         value={option.value}
                                         disabled={option.isSelected}
                                       >
@@ -1261,7 +1361,7 @@ export const PredictionForm = () => {
                       >
                         <DatePicker.RangePicker
                           format="MMM-DD"
-                          disabledDate={d => !d || d.isAfter(`Jan-${+moment().format("YYYY")+1}`) || d.isSameOrBefore(`Jan-${+moment().format("YYYY")-1}`) }
+                          disabledDate={d => !d || d.isAfter(`Jan-${+moment().format("YYYY") + 1}`) || d.isSameOrBefore(`Jan-${+moment().format("YYYY") - 1}`)}
                           onChange={(value) => {
                             console.log(moment(value[0]).format("MMM-DD"));
                             console.log(moment(value[1]).format("MMM-DD"));
@@ -1282,7 +1382,7 @@ export const PredictionForm = () => {
                       >
                         <DatePicker.RangePicker
                           format="MMM-DD"
-                          disabledDate={d => !d || d.isAfter(`Jan-${+moment().format("YYYY")+1}`) || d.isSameOrBefore(`Jan-${+moment().format("YYYY")-1}`) }
+                          disabledDate={d => !d || d.isAfter(`Jan-${+moment().format("YYYY") + 1}`) || d.isSameOrBefore(`Jan-${+moment().format("YYYY") - 1}`)}
                           onChange={(value) => {
                             console.log(moment(value[0]).format("MMM-DD"));
                             console.log(moment(value[1]).format("MMM-DD"));

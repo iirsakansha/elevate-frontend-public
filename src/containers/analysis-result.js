@@ -45,18 +45,22 @@ const responseStatic = {
   "overshot_density_3_r.html": "media/outputs/109/overshot_density_3_r.html",
   "overshot_density_4.html": "media/outputs/109/overshot_density_4.html",
   "overshot_density_5_r.html": "media/outputs/109/overshot_density_5_r.html",
-  "Base load + ToD EV load.png": "media/outputs/109/Base load + ToD EV load.png",
+  "Base load + ToD EV load.png":
+    "media/outputs/109/Base load + ToD EV load.png",
   "Load_Simulation_ToD_Calculation_Data.xlsx":
     "media/outputs/109/Load_Simulation_ToD_Calculation_Data.xlsx",
   "TOD_Surcharge_Rebate.xlsx": "media/outputs/109/TOD_Surcharge_Rebate.xlsx",
 };
 
 export const AnalysisResult = (props) => {
+  const { analysisResult } = useSelector((state) => state.analysis);
+  const AnalysisResultData =
+    typeof analysisResult === "string"
+      ? JSON.parse(analysisResult)
+      : analysisResult || {};
 
-  const { analysisResult } = useSelector(state => state.analysis);
-  const AnalysisResultData = JSON.parse(analysisResult)
-  const history = useHistory()
-  const dispatch = useDispatch()
+  const history = useHistory();
+  const dispatch = useDispatch();
   // useEffect(() => {
   //   window.addEventListener("beforeunload", function (e) {
   //     dispatch(deleteAnlysisResult({ folderId: AnalysisResultData.id }))
@@ -72,10 +76,15 @@ export const AnalysisResult = (props) => {
             <div className="items">
               <div className="header-box">
                 <h3>Charts</h3>
-                <Button className="btn" onClick={() => {
-                  dispatch(deleteAnlysisResult({ folderId: AnalysisResultData.id }));
-                  history.push('/ev-analysis')
-                }}>
+                <Button
+                  className="btn"
+                  onClick={() => {
+                    dispatch(
+                      deleteAnlysisResult({ folderId: AnalysisResultData.id })
+                    );
+                    history.push("/ev-analysis");
+                  }}
+                >
                   New Analysis
                 </Button>
               </div>
@@ -86,23 +95,28 @@ export const AnalysisResult = (props) => {
                     const fileUrl = `${config().API_BASE_URL}/${item}`;
                     const files = (item && item?.split("/")) || [];
 
-                    const download = e => {
+                    const download = (e) => {
                       console.log(e.target.href);
                       fetch(fileUrl, {
                         method: "GET",
-                        headers: {}
+                        headers: {},
                       })
-                        .then(response => {
+                        .then((response) => {
                           response.arrayBuffer().then(function (buffer) {
-                            const url = window.URL.createObjectURL(new Blob([buffer]));
+                            const url = window.URL.createObjectURL(
+                              new Blob([buffer])
+                            );
                             const link = document.createElement("a");
                             link.href = url;
-                            link.setAttribute("download", files[files.length - 1]); //or any other extension
+                            link.setAttribute(
+                              "download",
+                              files[files.length - 1]
+                            ); //or any other extension
                             document.body.appendChild(link);
                             link.click();
                           });
                         })
-                        .catch(err => {
+                        .catch((err) => {
                           console.log(err);
                         });
                     };
@@ -119,12 +133,7 @@ export const AnalysisResult = (props) => {
                             <h4 className="item_name">
                               {files[files.length - 1]}
                             </h4>
-                            <div
-
-                              className="btn"
-
-                              onClick={download}
-                            >
+                            <div className="btn" onClick={download}>
                               Download
                             </div>
                           </div>
@@ -145,23 +154,28 @@ export const AnalysisResult = (props) => {
                     const fileUrl = `${config().API_BASE_URL}/${item}`;
                     const files = (item && item?.split("/")) || [];
 
-                    const download = e => {
+                    const download = (e) => {
                       console.log(e.target.href);
                       fetch(fileUrl, {
                         method: "GET",
-                        headers: {}
+                        headers: {},
                       })
-                        .then(response => {
+                        .then((response) => {
                           response.arrayBuffer().then(function (buffer) {
-                            const url = window.URL.createObjectURL(new Blob([buffer]));
+                            const url = window.URL.createObjectURL(
+                              new Blob([buffer])
+                            );
                             const link = document.createElement("a");
                             link.href = url;
-                            link.setAttribute("download", files[files.length - 1]); //or any other extension
+                            link.setAttribute(
+                              "download",
+                              files[files.length - 1]
+                            ); //or any other extension
                             document.body.appendChild(link);
                             link.click();
                           });
                         })
-                        .catch(err => {
+                        .catch((err) => {
                           console.log(err);
                         });
                     };
@@ -177,12 +191,7 @@ export const AnalysisResult = (props) => {
                             <h4 className="item_name">
                               {files[files.length - 1]}
                             </h4>
-                            <div
-
-                              className="btn"
-
-                              onClick={download}
-                            >
+                            <div className="btn" onClick={download}>
                               Download
                             </div>
                           </div>
