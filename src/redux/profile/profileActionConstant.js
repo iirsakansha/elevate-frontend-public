@@ -1,0 +1,6 @@
+export const ProfileActionTypes = {
+    PROFILE_LOADING: "PROFILE_LOADING",
+    PROFILE_SUCCESS: "PROFILE_SUCCESS",
+    PROFILE_FAILED: "PROFILE_FAILED",
+  };
+  

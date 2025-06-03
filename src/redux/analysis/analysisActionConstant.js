@@ -1,0 +1,6 @@
+export const AnalysisActionTypes = {
+    ANALYSIS_LOADING: "ANALYSIS_LOADING",
+    ANALYSIS_SUCCESS: "ANALYSIS_SUCCESS",
+    ANALYSIS_FAILED: "ANALYSIS_FAILED",
+  };
+  

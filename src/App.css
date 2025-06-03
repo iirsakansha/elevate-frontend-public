@@ -1,0 +1,106 @@
+@import "~antd/dist/antd.css";
+
+.App {
+  text-align: center;
+}
+
+/* .App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.ant-form-item-label > label {
+  font-weight: 600;
+  color: #525f7f;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.bg-darkyellow {
+  background-color: var(--primary) !important;
+}
+
+.color-white {
+  color: var(--white);
+}
+
+.profile-info-container {
+  padding-top: 1rem;
+  color: #525f7f;
+}
+
+.profile-info .col {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-info .col i {
+  padding-right: 1rem;
+}
+
+.profile-info .col span {
+  font-weight: 600;
+}
+
+.ant-btn {
+  height: auto !important;
+}
+
+.ant-upload-list-item-card-actions {
+  display: none;
+}
+
+.ant-form-item-label > label.ant-form-item-required::before {
+  content: none !important;
+}
+
+.ant-form-item-label > label.ant-form-item-required::after {
+  display: inline-block;
+  margin-right: 4px;
+  color: #ff4d4f;
+  font-size: 14px;
+  font-family: SimSun, sans-serif;
+  line-height: 1;
+  content: "*";
+}
+
+.text-graydark {
+  color: #32325d !important;
+}
+
+.ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-icon {
+  background: var(--primary);
+}
+
+.ant-steps-item-process .ant-steps-item-icon {
+  border-color:  var(--primary);
+} */
