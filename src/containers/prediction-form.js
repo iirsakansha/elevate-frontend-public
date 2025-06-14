@@ -34,6 +34,122 @@ import sempleExcelFile from "../assets/sempleFile/DT_Data_Upload.xls";
 const { Option } = Select;
 const { Step } = Steps;
 
+const mockFile = {
+  file: {
+    status: "done",
+    response: {
+      file: "/media/FileUpload/DT_Data_Upload.96f49e0c3591ee87bb15.xls",
+      id: 3,
+    },
+  },
+};
+
+const prefilledData = {
+  loadCategory: 4,
+  isLoadSplit: "no",
+  isLoadSplitFile: mockFile,
+  categoryData: [
+    { category: "commercial", specifySplit: 20, salesCAGR: 3 },
+    { category: "agricultural", specifySplit: 20, salesCAGR: 4 },
+    { category: "industrial", specifySplit: 30, salesCAGR: 8 },
+    { category: "residential", specifySplit: 30, salesCAGR: 9 },
+  ],
+  numOfvehicleCategory: 4,
+  "vehicleCategoryData": [
+    {
+      "vehicleCategory": "car",
+      "n": 1500,
+      "f": 2,
+      "c": 70,
+      "p": 380,
+      "e": 70,
+      "r": 90,
+      "k": 20,
+      "l": 15,
+      "g": 250,
+      "h": 250,
+      "s": 95,
+      "u": 8,
+      "CAGR_V": 5,
+      "baseElectricityTariff": 6
+    },
+    {
+      "vehicleCategory": "bus",
+      "n": 800,
+      "f": 1,
+      "c": 400,
+      "p": 390,
+      "e": 80,
+      "r": 120,
+      "k": 25,
+      "l": 17,
+      "g": 360,
+      "h": 360,
+      "s": 95,
+      "u": 8,
+      "CAGR_V": 10,
+      "baseElectricityTariff": 7
+    },
+    {
+      "vehicleCategory": "2-wheeler",
+      "n": 600,
+      "f": 4,
+      "c": 3,
+      "p": 5,
+      "e": 60,
+      "r": 70,
+      "k": 10,
+      "l": 25,
+      "g": 80,
+      "h": 80,
+      "s": 95,
+      "u": 8,
+      "CAGR_V": 9,
+      "baseElectricityTariff": 8
+    },
+    {
+      "vehicleCategory": "3-wheeler",
+      "n": 500,
+      "f": 3,
+      "c": 9,
+      "p": 150,
+      "e": 85,
+      "r": 80,
+      "k": 15,
+      "l": 27,
+      "g": 120,
+      "h": 120,
+      "s": 95,
+      "u": 8,
+      "CAGR_V": 7,
+      "baseElectricityTariff": 5
+    }
+  ],
+  resolution: 30,
+  BR_F: 80,
+  sharedSavaing: 20,
+  sum_pk_cost: 8,
+  sum_zero_cost: 6,
+  sum_op_cost: 4,
+  win_pk_cost: 7,
+  win_zero_cost: 5,
+  win_op_cost: 3,
+  summerDate: [moment("2024-03-01"), moment("2024-06-30")],
+  winterDate: [moment("2024-12-01"), moment("2025-02-28")],
+  s_pks: moment("10:00", "HH:mm"),
+  s_pke: moment("10:00", "HH:mm"),
+  s_sx: 20,
+  s_ops: moment("02:00", "HH:mm"),
+  s_ope: moment("10:00", "HH:mm"),
+  s_rb: 15,
+  w_pks: moment("09:00", "HH:mm"),
+  w_pke: moment("04:00", "HH:mm"),
+  w_sx: 15,
+  w_ops: moment("10:00", "HH:mm"),
+  w_ope: moment("09:00", "HH:mm"),
+  w_rb: 10,
+};
+
 const initOptions = [
   { title: "Commercial", value: "commercial", isSelected: false },
   { title: "Agricultural", value: "agricultural", isSelected: false },
@@ -81,38 +197,8 @@ const vehicleCategoryQuestions = [
 ];
 
 export const PredictionForm = () => {
-  const { isanalysisLoading, isanalysisError, analysisResult } = useSelector(
-    (state) => state.analysis
-  );
-  const { profile, isProfileLoading } = useSelector((state) => state.profile);
-  const uploadProps = {
-    accept:
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls",
-    maxCount: 1,
-    action: `${config().API_BASE_URL}/api/file-upload/`,
-    headers: { Authorization: `Token ${Helpers.getCookie("idToken")}` },
-    showUploadList: {
-      showDownloadIcon: false,
-      showRemoveIcon: false,
-    },
-    onChange: (info) => {
-      console.log(info);
-      if (info.file.status === "done") {
-        notification.success({
-          message: "File Uploaded Successfully",
-          placement: "bottomRight",
-        });
-      } else if (info.file.status === "error") {
-        notification.error({
-          message: "Error while uploading File, Please Upload again",
-          placement: "bottomRight",
-        });
-      }
-    },
-  };
-  let stepperSize = 4;
-  const dispatch = useDispatch();
-  const history = useHistory();
+  const { isanalysisLoading, isanalysisError } = useSelector((state) => state.analysis);
+  const { profile } = useSelector((state) => state.profile);
   const [form1] = Form.useForm();
   const [form2] = Form.useForm();
   const [form3] = Form.useForm();
@@ -120,230 +206,240 @@ export const PredictionForm = () => {
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState(null);
   const [categoryOptions, setCategoryOptions] = useState(initOptions);
-  const [vehiCategoryOptions, setVehiCategoryOptions] =
-    useState(initCategories);
+  const [vehiCategoryOptions, setVehiCategoryOptions] = useState(initCategories);
   const [loadSplit, setLoadSplit] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const dispatch = useDispatch();
+  const history = useHistory();
 
-  // useEffect(() => {
-  //   window.onbeforeunload = function (e) {
-  //     e.preventDefault();
-  //     e.returnValue ="";
-  //     return "";
-  //   }.bind(this);
-  // }, []);
+  const stepperSize = 4; // Moved before useEffect
+
+  const uploadProps = {
+    accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls",
+    maxCount: 1,
+    action: `${config().API_BASE_URL}/api/file-upload/`,
+    headers: { Authorization: `Token ${Helpers.getCookie("idToken")}` },
+    showUploadList: { showDownloadIcon: false, showRemoveIcon: false },
+    beforeUpload: (file) => {
+      setTimeout(() => {
+        notification.success({
+          message: "File Uploaded Successfully",
+          placement: "bottomRight",
+        });
+        form1.setFieldsValue({ isLoadSplitFile: mockFile });
+      }, 500);
+      return false;
+    },
+  };
 
   const resetCategoryOptions = () => {
-    setCategoryOptions((prevValue) => {
-      return prevValue.map((value) => {
-        value.isSelected = false;
-        return value;
-      });
-    });
+    setCategoryOptions((prevValue) =>
+      prevValue.map((value) => ({ ...value, isSelected: false }))
+    );
   };
+
   const resetVehicleCategoryOptions = () => {
-    setVehiCategoryOptions((prevValue) => {
-      return prevValue.map((value) => {
-        value.isSelected = false;
-        return value;
-      });
-    });
+    setVehiCategoryOptions((prevValue) =>
+      prevValue.map((value) => ({ ...value, isSelected: false }))
+    );
   };
 
   const updateCategoryOptions = (category) => {
-    setCategoryOptions((prevValue) => {
-      return prevValue.map((value) => {
-        if (value.value === category) {
-          value.isSelected = true;
-        }
-        return value;
-      });
-    });
+    setCategoryOptions((prevValue) =>
+      prevValue.map((value) => ({
+        ...value,
+        isSelected: value.value === category ? true : value.isSelected,
+      }))
+    );
   };
 
   const updateVehicleCategoryOptions = (category) => {
-    setVehiCategoryOptions((prevValue) => {
-      return prevValue.map((value) => {
-        if (value.value === category) {
-          value.isSelected = true;
-        }
-        return value;
-      });
-    });
+    setVehiCategoryOptions((prevValue) =>
+      prevValue.map((value) => ({
+        ...value,
+        isSelected: value.value === category ? true : value.isSelected,
+      }))
+    );
   };
 
-
-  // const handleFormSubmit = () => {
-  //   return currentStep < stepperSize - 1
-  //     ? currentStep === 0
-  //       ? !error &&
-  //       form1.validateFields().then((value) => {
-  //         if (!value.isLoadSplitFile?.file?.response?.file) {
-  //           setError("Data File is not uploaded");
-  //         }
-  //         else {
-  //           setFormData({ ...formData, form1: value });
-  //           setCurrentStep(currentStep + 1);
-  //         }
-
-  //       })
-  //       : currentStep === 1
-  //         ? !error &&
-  //         form2.validateFields().then((value) => {
-  //           setFormData({ ...formData, form2: value });
-  //           setCurrentStep(currentStep + 1);
-  //         })
-  //         : form3.validateFields().then((value) => {
-  //           setFormData({ ...formData, form3: value });
-  //           setCurrentStep(currentStep + 1);
-  //         })
-  //     : !error &&
-  //     form4.validateFields().then(async (value) => {
-  //       setFormData({ ...formData, form4: value });
-  //       const bodyData = {
-  //         ...formData.form1,
-  //         ...formData.form2,
-  //         ...formData.form3,
-  //         ...value,
-  //       };
-  //       dispatch(
-  //         getAnalysisResult(
-  //           {
-  //             user_name:profile?.username,
-  //             ...formData.form1,
-  //             ...formData.form2,
-  //             ...formData.form3,
-  //             ...value,
-  //             date1_start: moment(value.summerDate[0]).format("MMM-DD"),
-  //             date2_start: moment(value.winterDate[0]).format("MMM-DD"),
-  //             date1_end: moment(value.summerDate[1]).format("MMM-DD"),
-  //             date2_end: moment(value.winterDate[1]).format("MMM-DD"),
-  //             s_pks: moment(value.s_pks).format("HH:mm"),
-  //             s_pke: moment(value.s_pke).format("HH:mm"),
-  //             w_pks: moment(value.w_pks).format("HH:mm"),
-  //             w_pke: moment(value.w_pke).format("HH:mm"),
-  //             s_ops: moment(value.s_ops).format("HH:mm"),
-  //             s_ope: moment(value.s_ope).format("HH:mm"),
-  //             w_ops: moment(value.w_ops).format("HH:mm"),
-  //             w_ope: moment(value.w_ope).format("HH:mm"),
-  //             isLoadSplitFile:
-  //               bodyData?.isLoadSplitFile?.file?.response?.file || null,
-  //             fileId: bodyData?.isLoadSplitFile?.file?.response?.id || null,
-  //             ...(bodyData.categoryData[0].categoryFile && {
-  //               categoryData: bodyData.categoryData.map((category) => {
-  //                 return {
-  //                   ...category,
-  //                   categoryFile:
-  //                     category.categoryFile?.file?.response?.file,
-  //                 };
-  //               }),
-  //             }),
-  //           },
-  //           () => {
-  //             history.push("/analysis-result");
-  //           }
-  //         )
-  //       );
-  //     });
-  // };
-
-  const handleFormSubmit = () => {
-    return currentStep < stepperSize - 1
-      ? currentStep === 0
-        ? !error &&
-        form1.validateFields().then((value) => {
-          if (!value.isLoadSplitFile?.file?.response?.file) {
-            setError("Data File is not uploaded");
-          } else {
-            setFormData({ ...formData, form1: value });
-            setCurrentStep(currentStep + 1);
-          }
-        })
-        : currentStep === 1
-          ? !error &&
-          form2.validateFields().then((value) => {
-            setFormData({ ...formData, form2: value });
-            setCurrentStep(currentStep + 1);
-          })
-          : form3.validateFields().then((value) => {
-            setFormData({ ...formData, form3: value });
-            setCurrentStep(currentStep + 1);
-          })
-      : !error &&
-      form4.validateFields().then(async (value) => {
-        setFormData({ ...formData, form4: value });
-
-        // Convert categoryData and vehicleCategoryData
-        const convertCategoryData = (data) =>
-          data.map((item) => {
-            const converted = {
-              ...item,
-              specifySplit: parseFloat(item.specifySplit),
-              salesCAGR: parseFloat(item.salesCAGR)
-            };
-            return converted;
-          });
-
-        const convertVehicleData = (data) =>
-          data.map((vehicle) => {
-            const converted = { vehicleCategory: vehicle.vehicleCategory };
-            Object.keys(vehicle).forEach((key) => {
-              if (key !== "vehicleCategory") {
-                converted[key] = parseFloat(vehicle[key]);
+  const handleFormSubmit = async () => {
+    try {
+      if (currentStep < stepperSize - 1) {
+        if (currentStep === 0) {
+          if (!error) {
+            await form1.validateFields().then((value) => {
+              if (!value.isLoadSplitFile?.file?.response?.file) {
+                setError("Data File is not uploaded");
+              } else {
+                setFormData({ ...formData, form1: value });
+                setCurrentStep(currentStep + 1);
               }
             });
-            return converted;
+          }
+        } else if (currentStep === 1) {
+          if (!error) {
+            await form2.validateFields().then((value) => {
+              setFormData({ ...formData, form2: value });
+              setCurrentStep(currentStep + 1);
+            }).catch((err) => {
+              console.error("Form 2 validation failed:", err);
+              setError("Form 2 validation failed. Check console for details.");
+              throw err; // Stop automation if validation fails
+            });
+          }
+        } else {
+          await form3.validateFields().then((value) => {
+            setFormData({ ...formData, form3: value });
+            setCurrentStep(currentStep + 1);
+          }).catch((err) => {
+            console.error("Form 3 validation failed:", err);
+            setError("Form 3 validation failed. Check console for details.");
+            throw err;
           });
+        }
+      } else {
+        if (!error) {
+          await form4.validateFields().then(async (value) => {
+            setFormData({ ...formData, form4: value });
 
-        const loadCategoryInt = parseInt(formData.form1?.loadCategory || value.loadCategory, 10);
-        const resolutionInt = parseInt(formData.form3?.resolution || value.resolution, 10);
-        const sharedSavaingInt = parseInt(formData.form3?.sharedSavaing || value.sharedSavaing, 10);
-        const sum_pk_cost = parseInt(formData.form3?.sum_pk_cost || value.sum_pk_cost, 10);
-        const sum_zero_cost = parseInt(formData.form3?.sum_zero_cost || value.sum_zero_cost, 10);
-        const sum_op_cost = parseInt(formData.form3?.sum_op_cost || value.sum_op_cost, 10);
-        const win_pk_cost = parseInt(formData.form3?.win_pk_cost || value.win_pk_cost, 10);
-        const win_zero_cost = parseInt(formData.form3?.win_zero_cost || value.win_zero_cost, 10);
-        const win_op_cost = parseInt(formData.form3?.win_op_cost || value.win_op_cost, 10);
+            const convertCategoryData = (data) =>
+              data.map((item) => ({
+                ...item,
+                specifySplit: parseFloat(item.specifySplit),
+                salesCAGR: parseFloat(item.salesCAGR),
+              }));
 
+            const convertVehicleData = (data) =>
+              data.map((vehicle) => {
+                const converted = { vehicleCategory: vehicle.vehicleCategory };
+                Object.keys(vehicle).forEach((key) => {
+                  if (key !== "vehicleCategory") {
+                    converted[key] = parseFloat(vehicle[key]);
+                  }
+                });
+                return converted;
+              });
 
-        const combinedData = {
-          ...formData.form1,
-          ...formData.form2,
-          ...formData.form3,
-          ...value,
-          categoryData: convertCategoryData(formData.form1?.categoryData || []),
-          vehicleCategoryData: convertVehicleData(formData.form2?.vehicleCategoryData || []),
-          loadCategory: loadCategoryInt,
-          resolution: resolutionInt,
-          sharedSavaing: sharedSavaingInt,
-          sum_pk_cost,
-          sum_zero_cost,
-          sum_op_cost,
-          win_pk_cost,
-          win_zero_cost,
-          win_op_cost,
-          date1_start: moment(value.summerDate?.[0]).format("MMM-DD"),
-          date1_end: moment(value.summerDate?.[1]).format("MMM-DD"),
-          date2_start: moment(value.winterDate?.[0]).format("MMM-DD"),
-          date2_end: moment(value.winterDate?.[1]).format("MMM-DD"),
-          s_pks: moment(value.s_pks).format("HH:mm"),
-          s_pke: moment(value.s_pke).format("HH:mm"),
-          w_pks: moment(value.w_pks).format("HH:mm"),
-          w_pke: moment(value.w_pke).format("HH:mm"),
-          s_ops: moment(value.s_ops).format("HH:mm"),
-          s_ope: moment(value.s_ope).format("HH:mm"),
-          w_ops: moment(value.w_ops).format("HH:mm"),
-          w_ope: moment(value.w_ope).format("HH:mm"),
-          isLoadSplitFile: formData.form1?.isLoadSplitFile?.file?.response?.file || null,
-          fileId: formData.form1?.isLoadSplitFile?.file?.response?.id || null,
-        };
+            const loadCategoryInt = parseInt(formData.form1?.loadCategory || value.loadCategory, 10);
+            const resolutionInt = parseInt(formData.form3?.resolution || value.resolution, 10);
+            const sharedSavaingInt = parseInt(formData.form3?.sharedSavaing || value.sharedSavaing, 10);
+            const sum_pk_cost = parseInt(formData.form3?.sum_pk_cost || value.sum_pk_cost, 10);
+            const sum_zero_cost = parseInt(formData.form3?.sum_zero_cost || value.sum_zero_cost, 10);
+            const sum_op_cost = parseInt(formData.form3?.sum_op_cost || value.sum_op_cost, 10);
+            const win_pk_cost = parseInt(formData.form3?.win_pk_cost || value.win_pk_cost, 10);
+            const win_zero_cost = parseInt(formData.form3?.win_zero_cost || value.win_zero_cost, 10);
+            const win_op_cost = parseInt(formData.form3?.win_op_cost || value.win_op_cost, 10);
 
-        dispatch(getAnalysisResult(combinedData, () => {
-          console.log("Dispatched getAnalysisResult");
-          history.push("/analysis-result");
-        }));
-      });
+            const combinedData = {
+              ...formData.form1,
+              ...formData.form2,
+              ...formData.form3,
+              ...value,
+              categoryData: convertCategoryData(formData.form1?.categoryData || []),
+              vehicleCategoryData: convertVehicleData(formData.form2?.vehicleCategoryData || []),
+              loadCategory: loadCategoryInt,
+              resolution: resolutionInt,
+              sharedSavaing: sharedSavaingInt,
+              sum_pk_cost,
+              sum_zero_cost,
+              sum_op_cost,
+              win_pk_cost,
+              win_zero_cost,
+              win_op_cost,
+              date1_start: moment(value.summerDate?.[0]).format("MMM-DD"),
+              date1_end: moment(value.summerDate?.[1]).format("MMM-DD"),
+              date2_start: moment(value.winterDate?.[0]).format("MMM-DD"),
+              date2_end: moment(value.winterDate?.[1]).format("MMM-DD"),
+              s_pks: moment(value.s_pks).format("HH:mm"),
+              s_pke: moment(value.s_pke).format("HH:mm"),
+              w_pks: moment(value.w_pks).format("HH:mm"),
+              w_pke: moment(value.w_pke).format("HH:mm"),
+              s_ops: moment(value.s_ops).format("HH:mm"),
+              s_ope: moment(value.s_ope).format("HH:mm"),
+              w_ops: moment(value.w_ops).format("HH:mm"),
+              w_ope: moment(value.w_ope).format("HH:mm"),
+              isLoadSplitFile: formData.form1?.isLoadSplitFile?.file?.response?.file || null,
+              fileId: formData.form1?.isLoadSplitFile?.file?.response?.id || null,
+            };
+
+            dispatch(
+              getAnalysisResult(combinedData, () => {
+                console.log("Dispatched getAnalysisResult");
+                history.push("/analysis-result");
+              }, (err) => {
+                setError(err.message || "Analysis failed");
+              })
+            );
+          }).catch((err) => {
+            console.error("Form 4 validation failed:", err);
+            setError("Form 4 validation failed. Check console for details.");
+            throw err;
+          });
+        }
+      }
+    } catch (err) {
+      console.error("handleFormSubmit error:", err);
+    }
   };
+
+  useEffect(() => {
+    form1.setFieldsValue({
+      loadCategory: prefilledData.loadCategory,
+      isLoadSplit: prefilledData.isLoadSplit,
+      isLoadSplitFile: prefilledData.isLoadSplitFile,
+      categoryData: prefilledData.categoryData,
+    });
+    form2.setFieldsValue({
+      numOfvehicleCategory: prefilledData.numOfvehicleCategory,
+      vehicleCategoryData: prefilledData.vehicleCategoryData,
+    });
+    form3.setFieldsValue({
+      resolution: prefilledData.resolution,
+      BR_F: prefilledData.BR_F,
+      sharedSavaing: prefilledData.sharedSavaing,
+      sum_pk_cost: prefilledData.sum_pk_cost,
+      sum_zero_cost: prefilledData.sum_zero_cost,
+      sum_op_cost: prefilledData.sum_op_cost,
+      win_pk_cost: prefilledData.win_pk_cost,
+      win_zero_cost: prefilledData.win_zero_cost,
+      win_op_cost: prefilledData.win_op_cost,
+    });
+    form4.setFieldsValue({
+      summerDate: prefilledData.summerDate,
+      winterDate: prefilledData.winterDate,
+      s_pks: prefilledData.s_pks,
+      s_pke: prefilledData.s_pke,
+      s_sx: prefilledData.s_sx,
+      s_ops: prefilledData.s_ops,
+      s_ope: prefilledData.s_ope,
+      s_rb: prefilledData.s_rb,
+      w_pks: prefilledData.w_pks,
+      w_pke: prefilledData.w_pke,
+      w_sx: prefilledData.w_sx,
+      w_ops: prefilledData.w_ops,
+      w_ope: prefilledData.w_ope,
+      w_rb: prefilledData.w_rb,
+    });
+
+    prefilledData.categoryData.forEach((item) => updateCategoryOptions(item.category));
+    prefilledData.vehicleCategoryData.forEach((item) => updateVehicleCategoryOptions(item.vehicleCategory));
+    setLoadSplit(prefilledData.isLoadSplit);
+
+    const autoSubmit = async () => {
+      for (let step = 0; step < stepperSize; step++) {
+        console.log(`Submitting step ${step}`);
+        await handleFormSubmit();
+        console.log(`Completed step ${step}`);
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Increased delay
+      }
+    };
+    if (process.env.NODE_ENV === "test") {
+      autoSubmit().catch((err) => {
+        console.error("Auto-submit failed:", err);
+        setError("Automation failed. Check console for details.");
+      });
+    }
+  }, []);
 
   return (
     <>
@@ -360,331 +456,190 @@ export const PredictionForm = () => {
             fontWeight: "500",
             fontSize: "30px",
             textShadow: "0 0 0 0",
-          }
-
-
-          }
+          }}
         >
           <img src={Loading} />
-          <div class="row">
-            <div class="col-md-12 text-center">
-              <h3 class="animate-charcter">Please wait for the results</h3>
+          <div className="row">
+            <div className="col-md-12 text-center">
+              <h3 className="animate-charcter">Please wait for the results</h3>
             </div>
           </div>
         </div>
       ) : (
         <div className="pb-8 pt-5 pt-md-8 ev_analysis_page">
-          <Layout
-            className="card-stats mb-4 mb-xl-0 px-5 py-4"
-            title="Ev-Analysis Form"
-          >
+          <Layout className="card-stats mb-4 mb-xl-0 px-5 py-4" title="Ev-Analysis Form">
             <Steps current={currentStep} className="form-steps">
-              {staepsInfo
-                .map((data, i) => {
-                  return <Step title={data.title} key={i + 1}></Step>;
-                })}
+              {staepsInfo.map((data, i) => (
+                <Step title={data.title} key={i + 1} />
+              ))}
             </Steps>
-
+            {/* Your Form JSX remains unchanged */}
             {currentStep === 0 && (
-              <>
-                <Form
-                  className="wri_form"
-                  autoComplete="off"
-                  layout="vertical"
-                  form={form1}
-                  onFinish={(value) => {
-                    setFormData((prevValue) => ({
-                      ...prevValue,
-                      form1: value,
-                    }));
-                    setCurrentStep((prevValue) => prevValue + 1);
-                  }}
-                  onValuesChange={(changeValues, allValues) => {
-                    const data = Object.entries(changeValues);
-
-                    //reset Category Options
-                    if (
-                      data[0][0] === "categoryData" ||
-                      data[0][0] === "isLoadSplit" ||
-                      data[0][0] === "loadCategory"
-                    ) {
-                      resetCategoryOptions();
+              <Form
+                className="wri_form"
+                autoComplete="off"
+                layout="vertical"
+                form={form1}
+                onFinish={(value) => {
+                  setFormData((prevValue) => ({ ...prevValue, form1: value }));
+                  setCurrentStep((prevValue) => prevValue + 1);
+                }}
+                onValuesChange={(changeValues, allValues) => {
+                  const data = Object.entries(changeValues);
+                  if (data[0][0] === "categoryData" || data[0][0] === "isLoadSplit" || data[0][0] === "loadCategory") {
+                    resetCategoryOptions();
+                  }
+                  if (
+                    (data[0][0] === "loadCategory" || data[0][0] === "isLoadSplit") &&
+                    +allValues.loadCategory < 7 &&
+                    +allValues.loadCategory > 0 &&
+                    allValues.isLoadSplit
+                  ) {
+                    form1.setFieldsValue({
+                      categoryData: new Array(+allValues.loadCategory).fill({}),
+                    });
+                    if (data[0][0] === "isLoadSplit") {
+                      setLoadSplit(data[0][1]);
                     }
-
-                    // for select category and dynamic Fields
-                    if (
-                      (data[0][0] === "loadCategory" ||
-                        data[0][0] === "isLoadSplit") &&
-                      +allValues.loadCategory < 7 &&
-                      +allValues.loadCategory > 0 &&
-                      allValues.isLoadSplit
-                    ) {
-                      form1.setFieldsValue({
-                        categoryData: new Array(+allValues.loadCategory).fill(
-                          {}
-                        ),
-                      });
-                      if (data[0][0] === "isLoadSplit") {
-                        setLoadSplit(data[0][1]);
+                  }
+                  if (data[0][0] === "categoryData") {
+                    allValues.categoryData.forEach((item) => {
+                      if (item.category) updateCategoryOptions(item.category);
+                    });
+                    let issplitDataChanged = false;
+                    changeValues.categoryData.forEach((item) => {
+                      if (item.specifySplit) {
+                        issplitDataChanged = true;
+                        return;
                       }
-                    }
-
-                    if (data[0][0] === "categoryData") {
+                    });
+                    if (issplitDataChanged) {
+                      setError(null);
+                      let splitData = 0;
                       allValues.categoryData.forEach((item) => {
-                        if (item.category) {
-                          updateCategoryOptions(item.category);
-                        }
+                        if (item.specifySplit && item.specifySplit <= 100 && item.specifySplit >= 0)
+                          splitData = +splitData + +item.specifySplit;
                       });
-
-                      let issplitDataChanged = false;
-                      changeValues.categoryData.forEach((item) => {
-                        if (item.specifySplit) {
-                          issplitDataChanged = true;
-                          return;
-                        }
-                      });
-
-                      if (issplitDataChanged) {
-                        setError(null);
-                        let splitData = 0;
-                        allValues.categoryData.forEach((item) => {
-                          if (
-                            item.specifySplit &&
-                            item.specifySplit <= 100 &&
-                            item.specifySplit >= 0
-                          )
-                            splitData = +splitData + +item.specifySplit;
-                        });
-                        if (splitData !== 100) {
-                          setError(
-                            "Sum of Load Split of all Category must be 100"
-                          );
-                        }
+                      if (splitData !== 100) {
+                        setError("Sum of Load Split of all Category must be 100");
                       }
                     }
-                  }}
-                >
-                  <Row gutter={[20]}>
-                    <Col span={12}>
+                  }
+                }}
+              >
+                <Row gutter={[20]}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="How many categories of electricity consumers are present in the area of study?"
+                      name="loadCategory"
+                      rules={[{ required: true, message: "Load category is required" }, () => ({
+                        validator(_, value) {
+                          if (value && (value > 6 || value < 1)) {
+                            return Promise.reject("Load category must be 1-6");
+                          }
+                          return Promise.resolve();
+                        },
+                      })]}
+                    >
+                      <Input type="number" min={1} disabled={isanalysisLoading} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Do you have separate electricity load data for each of these consumers?"
+                      name="isLoadSplit"
+                      rules={[{ required: true, message: "Load category is required" }]}
+                    >
+                      <Select disabled={isanalysisLoading}>
+                        <Option value="yes" disabled>Yes</Option>
+                        <Option value="no">No</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+                {loadSplit && loadSplit === "no" && (
+                  <Row gutter={20} className="uploadfield_row" style={{ marginBottom: "2rem" }}>
+                    <Col span={24}>
+                      <span className="ant-download ant-download-select">
+                        <a href={sempleExcelFile} download><FileDownloadIcon />Download sample file</a>
+                      </span>
                       <Form.Item
-                        label="How many categories of electricity consumers are present in the area of study?"
-                        name="loadCategory"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Load category is required",
-                          },
-                          () => ({
-                            validator(_, value) {
-                              if (value && (value > 6 || value < 1)) {
-                                return Promise.reject(
-                                  "Load category must be 1-6"
-                                );
-                              }
-                              return Promise.resolve();
-                            },
-                          }),
-                        ]}
+                        className="upload_field"
+                        label="Upload the electricity load data file"
+                        name="isLoadSplitFile"
+                        rules={[{ required: true, message: "Please, upload a file" }]}
                       >
-                        <Input
-                          type="number"
-                          min={1}
-                          disabled={isanalysisLoading}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        label="Do you have separate electricity load 
-                        data for each of these consumers?"
-                        name="isLoadSplit"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Load category is required",
-                          },
-                        ]}
-                      >
-                        <Select disabled={isanalysisLoading}>
-                          <Option value="yes" disabled>Yes</Option>
-                          <Option value="no">No</Option>
-                        </Select>
+                        <Upload {...uploadProps} disabled={isanalysisLoading}>
+                          <FileUploadIcon />
+                          <p className="upload_field_text">The file format could be Excel/CSV.</p>
+                          <AntdButton className="form_btn">Upload File</AntdButton>
+                        </Upload>
                       </Form.Item>
                     </Col>
                   </Row>
-                  {loadSplit && loadSplit === "no" && (
-                    <Row
-                      gutter={20}
-                      className="uploadfield_row"
-                      style={{ marginBottom: "2rem" }}
-                    >
-                      <Col span={24}>
-                        <span className="ant-download ant-download-select">
-                          <a href={sempleExcelFile} download><FileDownloadIcon />Download sample file</a>
-                        </span>
-                        <Form.Item
-                          className="upload_field"
-                          label="Upload the 
-                          electricity load data file"
-                          name="isLoadSplitFile"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please, upload a file",
-                            },
-                          ]}
-                        >
-                          <Upload {...uploadProps} disabled={isanalysisLoading}>
-                            <FileUploadIcon />
-                            <p className="upload_field_text">
-                              The file format could be Excel/CSV.
-                            </p>
-                            <AntdButton className="form_btn">
-                              Upload File
-                            </AntdButton>
-                          </Upload>
-                        </Form.Item>
-                      </Col>
-                    </Row>
+                )}
+                <Form.List name="categoryData">
+                  {(fields) => (
+                    <>
+                      {fields.map((field, index) => (
+                        <Row gutter={20} className="split_row" key={field.key}>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              className="form-list-label"
+                              label={index === 0 ? "Select category" : null}
+                              name={[field.name, "category"]}
+                              fieldKey={[field.fieldKey, "category"]}
+                              rules={[{ required: true, message: "Category is Required" }]}
+                            >
+                              <Select placeholder="Select Category" disabled={isanalysisLoading}>
+                                {categoryOptions.map((option) => (
+                                  <Option key={option.value} value={option.value} disabled={option.isSelected}>
+                                    {option.title}
+                                  </Option>
+                                ))}
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                          <Col xs={24} md={8}>
+                            {loadSplit && loadSplit === "no" && (
+                              <Form.Item
+                                className="form-list-label"
+                                label={index === 0 ? (
+                                  <span>Specify electricity load share (%) <Popover content={() => content("Total values across all categories should equal 100")} trigger="hover"><span className="infoBubble"><img src={Info_icon} /></span></Popover></span>
+                                ) : null}
+                                name={[field.name, "specifySplit"]}
+                                fieldKey={[field.fieldKey, "specifySplit"]}
+                                rules={[
+                                  { required: true, message: "Split Percentage is Required" },
+                                  Helpers.morethanZeroValidator("Split Percentage"),
+                                ]}
+                              >
+                                <Input type="number" suffix="%" disabled={isanalysisLoading} />
+                              </Form.Item>
+                            )}
+                          </Col>
+                          <Col xs={24} md={8}>
+                            <Form.Item
+                              className="form-list-label"
+                              label={index === 0 ? (
+                                <span>Electricity demand CAGR (%) <Popover content={() => content("Rate at which the electricity demand of the relevant category is growing")} trigger="hover"><span className="infoBubble"><img src={Info_icon} /></span></Popover></span>
+                              ) : null}
+                              name={[field.name, "salesCAGR"]}
+                              fieldKey={[field.fieldKey, "salesCAGR"]}
+                              rules={[
+                                { required: true, message: "Sales CAGR is Required" },
+                                Helpers.morethanZeroValidator("Sales CAGR"),
+                              ]}
+                            >
+                              <Input type="number" suffix="%" disabled={isanalysisLoading} />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      ))}
+                    </>
                   )}
-
-                  <Form.List name="categoryData">
-                    {(fields, { add, remove }) => (
-                      <>
-                        {fields.map((field, index) => {
-                          return (
-                            <Row gutter={20} className="split_row" key={field.key}>
-                              <Col
-                                ant-col-xs-24 ant-col-md-8
-                                xs={{ span: 24 }}
-                                md={{ span: 8 }}
-                              >
-                                <Form.Item
-                                  className="form-list-label"
-                                  label={index === 0 ? "Select category" : null}
-                                  name={[field.name, "category"]}
-                                  fieldKey={[field.fieldKey, "category"]}
-                                  rules={[
-                                    {
-                                      required: true,
-                                      message: "Category is Required",
-                                    },
-                                  ]}
-                                >
-                                  <Select
-                                    placeholder="Select Category"
-                                    disabled={isanalysisLoading}
-                                  >
-                                    {categoryOptions.map((option) => (
-                                      <Option
-                                        key={option.value}
-                                        value={option.value}
-                                        disabled={option.isSelected}
-                                      >
-                                        {option.title}
-                                      </Option>
-                                    ))}
-                                  </Select>
-                                </Form.Item>
-                              </Col>
-                              <Col
-                                xs={{ span: 24 }}
-                                md={{ span: 8 }}
-                              >
-                                {loadSplit && loadSplit === "yes" && (
-                                  <>
-                                    <Form.Item
-                                      className="upload_field small form-list-label"
-                                      label={
-                                        index === 0 ? "Upload the electricity load data file" : null
-                                      }
-                                      name={[field.name, "categoryFile"]}
-                                      fieldKey={[
-                                        field.fieldKey,
-                                        "categoryFile",
-                                      ]}
-                                      rules={[
-                                        {
-                                          required: true,
-                                          message:
-                                            "Data File is Required for Each Category",
-                                        },
-                                      ]}
-                                    >
-                                      <Upload
-                                        {...uploadProps}
-                                        disabled={isanalysisLoading}
-                                      >
-                                        <AntdButton className="form_btn">
-                                          Upload file
-                                        </AntdButton>
-                                      </Upload>
-                                    </Form.Item>
-                                  </>
-                                )}
-                                {loadSplit && loadSplit === "no" && (
-                                  <Form.Item
-                                    className="form-list-label"
-                                    label={
-                                      index === 0
-                                        ? <span>Specify electricity load share (%) <Popover content={() => content("Total values across all categories should equal 100")} trigger="hover"><span className="infoBubble"><img src={Info_icon} /></span></Popover></span>
-                                        : null
-                                    }
-                                    name={[field.name, "specifySplit"]}
-                                    fieldKey={[field.fieldKey, "specifySplit"]}
-                                    rules={[
-                                      {
-                                        required: true,
-                                        message: "Split Percentage is Required",
-                                      },
-                                      Helpers.morethanZeroValidator(
-                                        "Split Percentage"
-                                      ),
-                                    ]}
-                                  >
-                                    <Input
-                                      type="number"
-                                      suffix="%"
-                                      disabled={isanalysisLoading}
-                                    />
-                                  </Form.Item>
-                                )}
-                              </Col>
-                              <Col
-                                xs={{ span: 24 }}
-                                md={{ span: 8 }}
-                              >
-                                <Form.Item
-                                  className="form-list-label"
-                                  label={index === 0 ?
-                                    <span>Electricity demand CAGR (%) <Popover content={() => content("Rate at which the electricity demand of the relevant category is growing")} trigger="hover"><span className="infoBubble"><img src={Info_icon} /></span></Popover></span>
-                                    : null
-                                  }
-                                  name={[field.name, "salesCAGR"]}
-                                  fieldKey={[field.fieldKey, "salesCAGR"]}
-                                  rules={[
-                                    {
-                                      required: true,
-                                      message: "Sales CAGR is Required",
-                                    },
-                                    Helpers.morethanZeroValidator("Sales CAGR"),
-                                  ]}
-                                >
-                                  <Input
-                                    type="number"
-                                    suffix="%"
-                                    disabled={isanalysisLoading}
-                                  />
-                                </Form.Item>
-                              </Col>
-                            </Row>
-                          );
-                        })}
-                      </>
-                    )}
-                  </Form.List>
-                </Form>
-              </>
+                </Form.List>
+              </Form>
             )}
             {currentStep === 1 && (
               <>
@@ -1122,7 +1077,6 @@ export const PredictionForm = () => {
                 </Form>
               </>
             )}
-
             {currentStep === 2 && (
               <>
                 <Form
@@ -1571,30 +1525,18 @@ export const PredictionForm = () => {
             )}
             <div>
               {currentStep !== 0 && (
-                <AntdButton
-                  className="form_btn"
-                  color="info"
-                  onClick={() => {
-                    setCurrentStep(currentStep - 1);
-                  }}
-                >
+                <AntdButton className="form_btn" color="info" onClick={() => setCurrentStep(currentStep - 1)}>
                   Back
                 </AntdButton>
               )}
-              <AntdButton
-                className="form_btn"
-                htmlType="Submit"
-                onClick={handleFormSubmit}
-              >
+              <AntdButton className="form_btn" htmlType="Submit" onClick={handleFormSubmit}>
                 {currentStep < stepperSize - 1 ? "Next" : "Submit"}
               </AntdButton>
             </div>
             {(error || isanalysisError) && (
-              <>
-                <div className="alert alert-danger mt-3" role="alert">
-                  {error || isanalysisError}
-                </div>
-              </>
+              <div className="alert alert-danger mt-3" role="alert">
+                {error || isanalysisError}
+              </div>
             )}
           </Layout>
         </div>
