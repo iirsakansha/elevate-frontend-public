@@ -14,8 +14,6 @@ import { signOutAction } from "../redux/auth/authAction.js";
 import { useEffect } from "react";
 import { getProfile } from "../redux/profile/profileAction.js";
 import { AnalysisResult } from "./analysis-result.js";
-import { ReadyTempaltes } from "./templates.js";
-import { deleteAnlysisResult } from "../redux/analysis/analysisAction.js";
 
 const { Sider, Content, Header } = Layout;
 
@@ -56,7 +54,6 @@ export const Home = (props) => {
             <Menu.Item>
               <Link to="/ev-analysis">Ev-Analysis</Link>
             </Menu.Item>
-
             <Menu.Item>
               <Link to="/user-profile">Profile</Link>
             </Menu.Item>
@@ -67,7 +64,8 @@ export const Home = (props) => {
               <Link to="/templates">Template</Link>
             </Menu.Item>
             <Menu.Item>
-              <div className="logout_link"
+              <div
+                className="logout_link"
                 onClick={() => {
                   dispatch(
                     signOutAction(() => {
@@ -85,7 +83,9 @@ export const Home = (props) => {
           <Header>
             <Row>
               <Col xs={20} md={19}>
-                <p className="header_title">ELEVATE (Estimate Load of Electric Vehicles And Tariff Elasticity)</p>
+                <p className="header_title">
+                  ELEVATE (Estimate Load of Electric Vehicles And Tariff Elasticity)
+                </p>
               </Col>
               <Col span={4} md={5}>
                 <div className="header_avatar">
@@ -97,7 +97,6 @@ export const Home = (props) => {
                     />
                   </div>
                   <p className="user_name">{profile?.username}</p>
-                  {/* <p className="user_name">{new Intl.DateTimeFormat().format(profile?.last_login)}</p> */}
                 </div>
               </Col>
             </Row>
@@ -108,7 +107,6 @@ export const Home = (props) => {
               <Route exact path="/user-profile" component={UserProfile} />
               <Route exact path="/change-password" component={ChangePassword} />
               <Route exact path="/analysis-result" component={AnalysisResult} />
-              <Route exact path="/templates" component={ReadyTempaltes} />
             </div>
           </Content>
         </Layout>

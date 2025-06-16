@@ -523,12 +523,11 @@ export const ReadyTempaltes = () => {
       render: (_, record) => (
         <div className="action-buttons">
           <Button
-            type="primary"
-            size="small"
-            className="see-results-btn"
+            className="form_btn"
+            htmlType="submit"
             onClick={() => handleSeeResults(record)}
           >
-            See results
+            Proceed to Steps
           </Button>
         </div>
       ),
@@ -569,12 +568,9 @@ export const ReadyTempaltes = () => {
   return (
     <div className="templates-container">
       <div className="templates-header">
-        <div className="templates-title">
-          
-        </div>
-        
+        <div className="templates-title">  
+        </div> 
       </div>
-
       <Table
         columns={columns}
         dataSource={displayTemplates}
@@ -585,38 +581,6 @@ export const ReadyTempaltes = () => {
         className="templates-table"
         showHeader={true}
       />
-
-      <Modal
-        visible={isModalVisible}
-        onOk={handleModalOk}
-        cancelText="Cancel"
-        className="template-modal"
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          name="template_form"
-        >
-          <Form.Item
-            name="name"
-            label="Scenario Name"
-            rules={[{ required: true, message: 'Please input scenario name!' }]}
-          >
-            <Input placeholder="Enter scenario name" />
-          </Form.Item>
-
-          <Form.Item
-            name="dateCreated"
-            label="Date Created"
-            rules={[{ required: true, message: 'Please select date!' }]}
-          >
-            <DatePicker
-              style={{ width: '100%' }}
-              format="MMM D, YYYY"
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };
