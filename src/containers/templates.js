@@ -492,7 +492,6 @@ export const ReadyTempaltes = () => {
   const history = useHistory();
   const { templates, loading } = useSelector(state => state.templates || { templates: [], loading: false });
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -524,14 +523,6 @@ export const ReadyTempaltes = () => {
       render: (_, record) => (
         <div className="action-buttons">
           <Button
-            type="default"
-            size="small"
-            className="edit-btn"
-            onClick={() => handleEdit(record)}
-          >
-            Edit
-          </Button>
-          <Button
             type="primary"
             size="small"
             className="see-results-btn"
@@ -544,20 +535,6 @@ export const ReadyTempaltes = () => {
     },
   ];
 
-  const handleAddNewScenario = () => {
-    setEditingTemplate(null);
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  const handleEdit = (template) => {
-    setEditingTemplate(template);
-    form.setFieldsValue({
-      name: template.name,
-      dateCreated: moment(template.dateCreated),
-    });
-    setIsModalVisible(true);
-  };
 
   const handleSeeResults = (template) => {
     try {
@@ -578,47 +555,24 @@ export const ReadyTempaltes = () => {
     form.validateFields().then(values => {
       const templateData = {
         ...values,
-        dateCreated: values.dateCreated.toISOString(),
-        id: editingTemplate ? editingTemplate.id : Date.now(),
+        dateCreated: values.dateCreated.toISOString()
       };
-
-      if (editingTemplate) {
-        dispatch(updateTemplateAction(editingTemplate.id, templateData, () => {
-          message.success('Template updated successfully');
-          setIsModalVisible(false);
-          dispatch(getTemplatesAction());
-        }));
-      } else {
         dispatch(createTemplateAction(templateData, () => {
           message.success('Template created successfully');
           setIsModalVisible(false);
           dispatch(getTemplatesAction());
         }));
-      }
-    }).catch(info => {
-      console.log('Validate Failed:', info);
-    });
+    })
   };
 
-  const handleModalCancel = () => {
-    setIsModalVisible(false);
-    form.resetFields();
-    setEditingTemplate(null);
-  };
 
   return (
     <div className="templates-container">
       <div className="templates-header">
         <div className="templates-title">
-          {/* Title can be added here if needed */}
+          
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAddNewScenario}
-          className="add-scenario-btn"
-          title="Add a new scenario"
-        />
+        
       </div>
 
       <Table
@@ -633,11 +587,8 @@ export const ReadyTempaltes = () => {
       />
 
       <Modal
-        title={editingTemplate ? 'Edit Scenario' : 'Add New Scenario'}
         visible={isModalVisible}
         onOk={handleModalOk}
-        onCancel={handleModalCancel}
-        okText={editingTemplate ? 'Update' : 'Create'}
         cancelText="Cancel"
         className="template-modal"
       >
