@@ -176,7 +176,9 @@ input {
 }
 
 .wri_form
-  .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
+  .ant-select-focused:not(.ant-select-disabled).ant-select:not(
+    .ant-select-customize-input
+  )
   .ant-select-selector,
 .wri_form .ant-input:focus,
 .wri_form .ant-input-focused,
@@ -236,7 +238,9 @@ input {
 }
 
 .ant-form-item-label
-  > label.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+  > label.ant-form-item-required:not(
+    .ant-form-item-required-mark-optional
+  )::before {
   display: none;
 }
 
@@ -300,13 +304,8 @@ input {
 .ant-download .download_field_text {
   display: block;
 }
-.animate-charcter
-{
-  background-image: linear-gradient(
-    -225deg,
-    #fff 0%,
-    #000 100%
-  );
+.animate-charcter {
+  background-image: linear-gradient(-225deg, #fff 0%, #000 100%);
   background-size: 200% auto;
   background-clip: text;
   text-fill-color: transparent;
@@ -455,7 +454,7 @@ input {
 }
 
 /*First Form*/
-@media(max-width:1200px){
+@media (max-width: 1200px) {
   .ant-steps-item-title {
     display: none;
   }
@@ -470,7 +469,7 @@ input {
     width: 9999px;
     height: 1px;
     background: #f0f0f0;
-    content: '';
+    content: "";
   }
   .ev_analysis_page .ant-form-vertical .uploadfield_row .ant-form-item {
     margin-bottom: 0px;
@@ -729,8 +728,6 @@ input {
 
 /* Sign In Page END */
 
-
-
 .infoBubble {
   padding-right: 5px;
 }
@@ -743,3 +740,142 @@ input {
   text-align: center;
 }
 
+/* Templates Styles */
+.templates-container {
+  padding: 24px;
+  background-color: #fff;
+  min-height: 100vh;
+}
+
+.templates-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.add-scenario-btn {
+  background-color: #f0ad4e !important;
+  border-color: #f0ad4e !important;
+  border-radius: 50% !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: absolute;
+  top: -60px;
+  right: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-scenario-btn:hover,
+.add-scenario-btn:focus {
+  background-color: #e09a3a !important;
+  border-color: #e09a3a !important;
+}
+
+.templates-table {
+  background-color: #fff;
+}
+
+.templates-table .ant-table-thead > tr > th {
+  background-color: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 600;
+  color: #333;
+  padding: 16px;
+}
+
+.templates-table .ant-table-tbody > tr > td {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.templates-table .ant-table-tbody > tr:hover > td {
+  background-color: #fafafa;
+}
+
+.scenario-name-column {
+  font-weight: 500;
+  color: #333;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-buttons .edit-btn {
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  color: #666;
+  border-radius: 4px;
+  font-size: 12px;
+  height: 28px;
+  padding: 0 12px;
+}
+
+.action-buttons .edit-btn:hover {
+  border-color: #40a9ff;
+  color: #40a9ff;
+}
+
+.action-buttons .see-results-btn {
+  background-color: #f0ad4e !important;
+  border-color: #f0ad4e !important;
+  color: #fff !important;
+  border-radius: 4px;
+  font-size: 12px;
+  height: 28px;
+  padding: 0 12px;
+}
+
+.action-buttons .see-results-btn:hover {
+  background-color: #e09a3a !important;
+  border-color: #e09a3a !important;
+}
+
+.template-modal .ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.template-modal .ant-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.template-modal .ant-form-item-label > label {
+  font-weight: 500;
+}
+
+.template-modal .ant-btn-primary {
+  background-color: #f0ad4e;
+  border-color: #f0ad4e;
+}
+
+.template-modal .ant-btn-primary:hover {
+  background-color: #e09a3a;
+  border-color: #e09a3a;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .templates-container {
+    padding: 16px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .action-buttons .edit-btn,
+  .action-buttons .see-results-btn {
+    width: 100%;
+    min-width: 80px;
+  }
+}

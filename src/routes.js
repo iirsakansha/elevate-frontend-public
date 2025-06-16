@@ -1,5 +1,6 @@
 import { Dashboard } from "./containers/dashboard";
 import { PredictionForm } from "./containers/prediction-form";
+import { ReadyTempaltes } from "./containers/templates";
 
 var routes = [
   {
@@ -14,6 +15,13 @@ var routes = [
     name: "EV Analysis",
     icon: "ni ni-email-83 text-primary",
     component: PredictionForm,
+    exact: true
+  },
+  {
+    path: "/templates",
+    name: "Templates",
+    icon: "ni ni-email-83 text-primary",
+    component: ReadyTempaltes,
     exact: true
   },
 ];
