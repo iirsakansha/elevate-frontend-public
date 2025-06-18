@@ -33,16 +33,21 @@
 }
 
 .header_avatar .user_avatar img {
-  height: 40px;
-  width: 40px;
+  height: 50px;
+  width: 50px;
   border: 2px solid #fff;
   border-radius: 50%;
+  margin-top:10px;
 }
 
 .header_avatar .user_name {
-  margin: 0 0 0 10px;
+  margin: -23px 0px -4px 4px;
   font-size: 15px;
   font-weight: 500;
+}
+
+:where(.css-dev-only-do-not-override-36gkoj).ant-dropdown .ant-dropdown-menu, :where(.css-dev-only-do-not-override-36gkoj).ant-dropdown-menu-submenu .ant-dropdown-menu{
+  margin:-15px 0px 0px 174px;
 }
 
 header.ant-layout-header .header_title {
@@ -51,6 +56,7 @@ header.ant-layout-header .header_title {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  margin: 5px;
 }
 
 /* Header END */
@@ -655,6 +661,16 @@ input {
   margin-right: 8px;
 }
 
+.line{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.line svg{
+  margin-bottom: 15px;
+}
+
 /* Profile Page Design END */
 
 /* Sign In Page */
@@ -672,6 +688,7 @@ input {
   display: table-cell;
   vertical-align: middle;
   background: #ffdc92;
+  height: 100vh;
 }
 
 .user_signin_page .form_title {
@@ -717,6 +734,35 @@ input {
 
 .signin_form .ant-btn.form_btn {
   width: 100%;
+  justify-content:left;
+}
+
+.templates-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0; /* Adjust padding as needed */
+}
+
+.templates-title {
+  margin: 0;
+}
+
+.analysis {
+  height: 40px;
+  padding: 5px 30px !important;
+  text-transform: capitalize;
+  background: #fff;
+  border-color: #f3b229;
+  color: #e09a3a !important;
+  transition: all 0.2s;
+  margin-right: 10px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.analysis:hover{
+  border-color: #e09a3a !important;
 }
 
 .disclaimer-text {

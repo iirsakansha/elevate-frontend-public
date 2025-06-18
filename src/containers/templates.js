@@ -544,7 +544,7 @@ export const ReadyTempaltes = () => {
 
       navigate({
         pathname: '/ev-analysis',
-        state: { templateData: serializedFormData },
+        state: { templateData: serializedFormData, originPath: '/templates' },
       });
     } catch (error) {
       console.error('Error serializing template data:', error);
@@ -565,13 +565,22 @@ export const ReadyTempaltes = () => {
         }));
     })
   };
-
+  const handleCreateCustomAnalysis = () => {
+    navigate('/ev-analysis');
+  };
 
   return (
     <div className="templates-container">
-      <div className="templates-header">
-        <div className="templates-title">  
-        </div> 
+      <div className="templates-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="templates-title">
+          <h2>Preconfigured EV Load Scenarios</h2>
+        </div>
+        <Button
+          className="analysis"
+          onClick={handleCreateCustomAnalysis}
+        >
+          Create Custom Analysis
+        </Button>
       </div>
       <Table
         columns={columns}

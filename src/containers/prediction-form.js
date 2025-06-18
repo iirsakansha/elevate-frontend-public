@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Form,
   Input,
@@ -12,15 +12,14 @@ import {
   notification,
   Popover,
 } from "antd";
-import { DatePicker, TimePicker } from "antd";
+import { DatePicker } from "antd";
 import "./style.css";
 import { ReactComponent as FileUploadIcon } from "../assets/icons/file-upload.svg";
 import { ReactComponent as FileDownloadIcon } from "../assets/icons/file-download.svg";
 import { Helpers } from "../helpers";
-import { Prompt, useNavigate, useLocation } from "react-router";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ApiService } from "../api";
 import { config } from "../config";
-import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { getAnalysisResult } from "../redux/analysis/analysisAction";
 import Loading from "../assets/icons/loading.gif";
@@ -56,7 +55,7 @@ const staepsInfo = [
   { title: "Consumer base electric load details" },
   { title: "Specify electric vehicle details" },
   { title: "Managed charging analysis" },
-  { title: "Managed charging analysis" },
+  { title: "Time of Day (ToD) settings" }, // Updated for clarity
 ];
 
 const content = (msg) => (
@@ -73,17 +72,71 @@ const vehicleCategoryQuestions = [
   { title: "Required charging power of vehicle (kW)" },
   { title: "Charging efficiency (%)" },
   { title: "Vehicle range (km)" },
-  { title: <span>Average charging start time (Min) <Popover content={() => content("“For 8:00 AM (8 hours * 60 minutes), please enter 480. For 8 PM (20:00 hours * 60 minutes),please enter 1200. For 3:30 PM (15:30 hours * 60 minutes), please enter 930")} trigger="hover"><span className="infoBubble"><img src={Info_icon} /></span></Popover></span> },
+  {
+    title: (
+      <span>
+        Average charging start time (Min){" "}
+        <Popover
+          content={() =>
+            content(
+              "For 8:00 AM (8 hours * 60 minutes), please enter 480. For 8 PM (20:00 hours * 60 minutes), please enter 1200. For 3:30 PM (15:30 hours * 60 minutes), please enter 930"
+            )
+          }
+          trigger="hover"
+        >
+          <span className="infoBubble">
+            <img src={Info_icon} />
+          </span>
+        </Popover>
+      </span>
+    ),
+  },
   { title: "Standard deviation of charging start time (Min)" },
   { title: "Average daily trip length (km)" },
   { title: "Standard deviation of average daily trip length (km)" },
   { title: "Average possible ending state of charge (%)" },
   { title: "Standard Deviation of Ending State of Charge (%)" },
-  { title: <span>Electric vehicle sales CAGR (%) <Popover content={() => content("Rate at which the relevant category of electricity vehicles’ number is growing")} trigger="hover"><span className="infoBubble"><img src={Info_icon} /></span></Popover></span> },
-  { title: <span>Base electricity tariff (INR/ kWh) <Popover content={() => content("Electricity tariff paid by the relevant category of electric vehicle consumers to the local utility")} trigger="hover"><span className="infoBubble"><img src={Info_icon} /></span></Popover></span> },
+  {
+    title: (
+      <span>
+        Electric vehicle sales CAGR (%){" "}
+        <Popover
+          content={() =>
+            content(
+              "Rate at which the relevant category of electricity vehicles’ number is growing"
+            )
+          }
+          trigger="hover"
+        >
+          <span className="infoBubble">
+            <img src={Info_icon} />
+          </span>
+        </Popover>
+      </span>
+    ),
+  },
+  {
+    title: (
+      <span>
+        Base electricity tariff (INR/ kWh){" "}
+        <Popover
+          content={() =>
+            content(
+              "Electricity tariff paid by the relevant category of electric vehicle consumers to the local utility"
+            )
+          }
+          trigger="hover"
+        >
+          <span className="infoBubble">
+            <img src={Info_icon} />
+          </span>
+        </Popover>
+      </span>
+    ),
+  },
 ];
 
-// Deserialize moment objects in formData
+// Deserialize formData using dayjs
 const deserializeFormData = (formData) => {
   return {
     form1: { ...formData.form1 },
@@ -92,10 +145,10 @@ const deserializeFormData = (formData) => {
     form4: {
       ...formData.form4,
       summerDate: Array.isArray(formData.form4.summerDate)
-        ? formData.form4.summerDate.map(date => dayjs(date))
+        ? formData.form4.summerDate.map((date) => dayjs(date))
         : [dayjs(formData.form4.summerDate), dayjs(formData.form4.summerDate)],
       winterDate: Array.isArray(formData.form4.winterDate)
-        ? formData.form4.winterDate.map(date => dayjs(date))
+        ? formData.form4.winterDate.map((date) => dayjs(date))
         : [dayjs(formData.form4.winterDate), dayjs(formData.form4.winterDate)],
       s_pks: formData.form4.s_pks ? dayjs(formData.form4.s_pks, 'HH:mm') : null,
       s_pke: formData.form4.s_pke ? dayjs(formData.form4.s_pke, 'HH:mm') : null,
@@ -128,33 +181,33 @@ export const PredictionForm = () => {
   const [loadSplit, setLoadSplit] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Prefill forms with template data if available
-  useEffect(() => {
-    let templateData = location.state?.templateData;
-
-    // Fallback to localStorage if location.state is undefined
-    if (!templateData) {
+  // Memoize templateData to stabilize useEffect
+  const templateData = useMemo(() => {
+    let data = location.state?.templateData;
+    if (!data) {
       const storedData = localStorage.getItem('templateData');
       if (storedData) {
-        templateData = JSON.parse(storedData);
+        data = JSON.parse(storedData);
         localStorage.removeItem('templateData');
       }
     }
+    return data;
+  }, [location.state?.templateData]);
 
+  // Prefill forms with template data if available
+  useEffect(() => {
+    console.log('PredictionForm useEffect triggered with templateData:', templateData);
     if (templateData) {
       const deserializedData = deserializeFormData(templateData);
-
       form1.setFieldsValue({
         ...deserializedData.form1,
         categoryData: deserializedData.form1.categoryData,
       });
       setLoadSplit(deserializedData.form1.isLoadSplit);
-
       form2.setFieldsValue({
         ...deserializedData.form2,
         vehicleCategoryData: deserializedData.form2.vehicleCategoryData,
       });
-
       form3.setFieldsValue({
         resolution: deserializedData.form3.resolution,
         BR_F: deserializedData.form3.BR_F,
@@ -166,7 +219,6 @@ export const PredictionForm = () => {
         win_zero_cost: deserializedData.form3.win_zero_cost,
         win_op_cost: deserializedData.form3.win_op_cost,
       });
-
       form4.setFieldsValue({
         ...deserializedData.form4,
         summerDate: deserializedData.form4.summerDate,
@@ -180,7 +232,6 @@ export const PredictionForm = () => {
         w_ops: deserializedData.form4.w_ops,
         w_ope: deserializedData.form4.w_ope,
       });
-
       deserializedData.form1.categoryData.forEach((item) => {
         if (item.category) {
           updateCategoryOptions(item.category);
@@ -191,9 +242,7 @@ export const PredictionForm = () => {
           updateVehicleCategoryOptions(item.vehicleCategory);
         }
       });
-
       setFormData(deserializedData);
-
       if (deserializedData.form1.isLoadSplit === 'no') {
         notification.info({
           message: 'File Upload Required',
@@ -202,7 +251,7 @@ export const PredictionForm = () => {
         });
       }
     }
-  }, [location.state, form1, form2, form3, form4]);
+  }, [templateData, form1, form2, form3, form4]);
 
   const uploadProps = {
     accept:
@@ -229,78 +278,71 @@ export const PredictionForm = () => {
     },
   };
 
-  let stepperSize = 4;
+  const stepperSize = 4;
 
   const resetCategoryOptions = () => {
-    setCategoryOptions((prevValue) => {
-      return prevValue.map((value) => {
-        value.isSelected = false;
-        return value;
-      });
-    });
+    setCategoryOptions((prevValue) =>
+      prevValue.map((value) => ({ ...value, isSelected: false }))
+    );
   };
 
   const resetVehicleCategoryOptions = () => {
-    setVehiCategoryOptions((prevValue) => {
-      return prevValue.map((value) => {
-        value.isSelected = false;
-        return value;
-      });
-    });
+    setVehiCategoryOptions((prevValue) =>
+      prevValue.map((value) => ({ ...value, isSelected: false }))
+    );
   };
 
   const updateCategoryOptions = (category) => {
-    setCategoryOptions((prevValue) => {
-      return prevValue.map((value) => {
-        if (value.value === category) {
-          value.isSelected = true;
-        }
-        return value;
-      });
-    });
+    setCategoryOptions((prevValue) =>
+      prevValue.map((value) => ({
+        ...value,
+        isSelected: value.value === category,
+      }))
+    );
   };
 
   const updateVehicleCategoryOptions = (category) => {
-    setVehiCategoryOptions((prevValue) => {
-      return prevValue.map((value) => {
-        if (value.value === category) {
-          value.isSelected = true;
-        }
-        return value;
-      });
-    });
+    setVehiCategoryOptions((prevValue) =>
+      prevValue.map((value) => ({
+        ...value,
+        isSelected: value.value === category,
+      }))
+    );
   };
 
   const handleFormSubmit = () => {
     setError(null);
 
-    return currentStep < stepperSize - 1
-      ? currentStep === 0
-        ? form1.validateFields().then((value) => {
+    if (currentStep < stepperSize - 1) {
+      if (currentStep === 0) {
+        form1.validateFields().then((value) => {
           if (!value.isLoadSplitFile?.file?.response?.file) {
             setError("Data File is not uploaded");
           } else {
             setFormData({ ...formData, form1: value });
             setCurrentStep(currentStep + 1);
           }
-        }).catch((info) => {
+        }).catch(() => {
           setError('Please fill in all required fields correctly.');
-        })
-        : currentStep === 1
-          ? form2.validateFields().then((value) => {
-            setFormData({ ...formData, form2: value });
-            setCurrentStep(currentStep + 1);
-          }).catch((info) => {
-            setError('Please fill in all required fields correctly.');
-          })
-          : form3.validateFields().then((value) => {
-            console.log("Form3 values:", value); // Debug log
-            setFormData({ ...formData, form3: value });
-            setCurrentStep(currentStep + 1);
-          }).catch((info) => {
-            setError('Please fill in all required fields correctly.');
-          })
-      : form4.validateFields().then(async (value) => {
+        });
+      } else if (currentStep === 1) {
+        form2.validateFields().then((value) => {
+          setFormData({ ...formData, form2: value });
+          setCurrentStep(currentStep + 1);
+        }).catch(() => {
+          setError('Please fill in all required fields correctly.');
+        });
+      } else if (currentStep === 2) {
+        form3.validateFields().then((value) => {
+          console.log("Form3 values:", value);
+          setFormData({ ...formData, form3: value });
+          setCurrentStep(currentStep + 1);
+        }).catch(() => {
+          setError('Please fill in all required fields correctly.');
+        });
+      }
+    } else {
+      form4.validateFields().then(async (value) => {
         setFormData({ ...formData, form4: value });
 
         const convertCategoryData = (data) =>
@@ -326,16 +368,9 @@ export const PredictionForm = () => {
           return isNaN(parsed) ? fallback : parsed;
         };
 
-        const safeMomentFormat = (date, format) => {
+        const safeFormat = (date, format) => {
           if (!date) return '';
-          // Handle both moment and dayjs objects
-          if (moment.isMoment(date)) {
-            return date.format(format);
-          }
-          if (dayjs.isDayjs(date)) {
-            return date.format('HH:mm');
-          }
-          return '';
+          return dayjs.isDayjs(date) ? date.format(format) : '';
         };
 
         const loadCategoryInt = safeParseInt(
@@ -391,32 +426,36 @@ export const PredictionForm = () => {
           win_pk_cost,
           win_zero_cost,
           win_op_cost,
-          date1_start: safeMomentFormat(value.summerDate?.[0], "MMM-DD"),
-          date1_end: safeMomentFormat(value.summerDate?.[1], "MMM-DD"),
-          date2_start: safeMomentFormat(value.winterDate?.[0], "MMM-DD"),
-          date2_end: safeMomentFormat(value.winterDate?.[1], "MMM-DD"),
-          s_pks: safeMomentFormat(value.s_pks, "HH:mm"),
-          s_pke: safeMomentFormat(value.s_pke, "HH:mm"),
-          w_pks: safeMomentFormat(value.w_pks, "HH:mm"),
-          w_pke: safeMomentFormat(value.w_pke, "HH:mm"),
-          s_ops: safeMomentFormat(value.s_ops, "HH:mm"),
-          s_ope: safeMomentFormat(value.s_ope, "HH:mm"),
-          w_ops: safeMomentFormat(value.w_ops, "HH:mm"),
-          w_ope: safeMomentFormat(value.w_ope, "HH:mm"),
+          date1_start: safeFormat(value.summerDate?.[0], "MMM-DD"),
+          date1_end: safeFormat(value.summerDate?.[1], "MMM-DD"),
+          date2_start: safeFormat(value.winterDate?.[0], "MMM-DD"),
+          date2_end: safeFormat(value.winterDate?.[1], "MMM-DD"),
+          s_pks: safeFormat(value.s_pks, "HH:mm"),
+          s_pke: safeFormat(value.s_pke, "HH:mm"),
+          w_pks: safeFormat(value.w_pks, "HH:mm"),
+          w_pke: safeFormat(value.w_pke, "HH:mm"),
+          s_ops: safeFormat(value.s_ops, "HH:mm"),
+          s_ope: safeFormat(value.s_ope, "HH:mm"),
+          w_ops: safeFormat(value.w_ops, "HH:mm"),
+          w_ope: safeFormat(value.w_ope, "HH:mm"),
           isLoadSplitFile: formData.form1?.isLoadSplitFile?.file?.response?.file || null,
           fileId: formData.form1?.isLoadSplitFile?.file?.response?.id || null,
         };
 
         try {
+          console.log('Submitting analysis with data:', combinedData);
           await dispatch(getAnalysisResult(combinedData, () => {
+            console.log('Navigating to /analysis-result');
             navigate("/analysis-result");
           }));
         } catch (err) {
+          console.error('Analysis submission error:', err);
           setError('Failed to submit analysis. Please try again.');
         }
-      }).catch((info) => {
+      }).catch(() => {
         setError('Please fill in all required fields correctly.');
       });
+    }
   };
 
   return (

@@ -29,12 +29,12 @@ export const AnalysisResult = (props) => {
               <div className="header-box">
                 <h3>Charts</h3>
                 <Button
-                  className="btn"
+                  className="btn form_btn"
                   onClick={() => {
                     dispatch(
                       deleteAnlysisResult({ folderId: AnalysisResultData.id })
                     );
-                    navigate("/ev-analysis");
+                    navigate("/templates");
                   }}
                 >
                   New Analysis

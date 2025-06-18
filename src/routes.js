@@ -1,6 +1,9 @@
 import { Dashboard } from "./containers/dashboard";
 import { PredictionForm } from "./containers/prediction-form";
 import { ReadyTempaltes } from "./containers/templates";
+import { UserProfile } from "./containers/userProfile";
+import { ChangePassword } from "./containers/changePassword";
+import { AnalysisResult } from "./containers/analysis-result";
 
 const routes = [
   {
@@ -20,6 +23,24 @@ const routes = [
     name: "Templates",
     icon: "ni ni-email-83 text-primary",
     element: <ReadyTempaltes />,
+  },
+  {
+    path: "/user-profile",
+    name: "User Profile",
+    icon: "ni ni-single-02 text-primary",
+    element: <UserProfile />,
+  },
+  {
+    path: "/change-password",
+    name: "Change Password",
+    icon: "ni ni-key-25 text-primary",
+    element: <ChangePassword />,
+  },
+  {
+    path: "/analysis-result",
+    name: "Analysis Result",
+    icon: "ni ni-chart-bar-32 text-primary",
+    element: <AnalysisResult />,
   },
 ];
 

@@ -1,27 +1,22 @@
-import React from "react";
-import { Routes, Route, Link, useNavigate, Outlet } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import routes from "../routes.js";
-
 import { ReactComponent as AppIcon } from "../assets/icons/app-icon.svg";
-import { UserProfile } from "./userProfile.js";
-import { ChangePassword } from "./changePassword.js";
-import { Divider, Layout, Menu } from "antd";
+import { ReactComponent as DownArrow } from "../assets/icons/downarrow.svg";
+import { Divider, Layout, Menu, Dropdown } from "antd";
 import { Row, Col } from "antd";
-
 import ProfileImage from "../assets/icons/profile.png";
 import { useDispatch, useSelector } from "react-redux";
 import { signOutAction } from "../redux/auth/authAction.js";
-import { useEffect } from "react";
 import { getProfile } from "../redux/profile/profileAction.js";
-import { AnalysisResult } from "./analysis-result.js";
 
 const { Sider, Content, Header } = Layout;
 
-export const Home = (props) => {
+export const Home = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const profile = useSelector((state) => state.profile.profile);
-  const { analysisResult } = useSelector(state => state.analysis);
+  const { analysisResult } = useSelector((state) => state.analysis);
 
   useEffect(() => {
     if (!profile) {
@@ -31,13 +26,31 @@ export const Home = (props) => {
 
   const getRoutes = () => {
     return routes.map((route, index) => (
-      <Route
-        key={index}
-        path={route.path}
-        element={route.element}
-      />
+      <Route key={index} path={route.path} element={route.element} />
     ));
   };
+
+  const handleLogout = () => {
+    dispatch(
+      signOutAction(() => {
+        navigate("/signin");
+      })
+    );
+  };
+
+  const avatarMenu = (
+    <Menu>
+      <Menu.Item key="user-profile">
+        <Link to="/user-profile">Profile</Link>
+      </Menu.Item>
+      <Menu.Item key="change-password">
+        <Link to="/change-password">Change Password</Link>
+      </Menu.Item>
+      <Menu.Item key="logout" onClick={handleLogout}>
+        Logout
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
     <Layout>
@@ -47,31 +60,11 @@ export const Home = (props) => {
         </div>
         <Divider />
         <Menu>
-          <Menu.Item>
-            <Link to="/ev-analysis">Ev-Analysis</Link>
+          <Menu.Item key="templates">
+            <Link to="/templates">EV Scenarios</Link>
           </Menu.Item>
-          <Menu.Item>
-            <Link to="/user-profile">Profile</Link>
-          </Menu.Item>
-          <Menu.Item>
-            <Link to="/change-password">Change Password</Link>
-          </Menu.Item>
-          <Menu.Item>
-            <Link to="/templates">Template</Link>
-          </Menu.Item>
-          <Menu.Item>
-            <div
-              className="logout_link"
-              onClick={() => {
-                dispatch(
-                  signOutAction(() => {
-                    navigate("/signin");
-                  })
-                );
-              }}
-            >
-              Logout
-            </div>
+          <Menu.Item key="ev-analysis">
+            <Link to="/ev-analysis">Analysis</Link>
           </Menu.Item>
         </Menu>
       </Sider>
@@ -84,27 +77,25 @@ export const Home = (props) => {
               </p>
             </Col>
             <Col span={4} md={5}>
-              <div className="header_avatar">
-                <div className="user_avatar">
-                  <img
-                    src={ProfileImage}
-                    alt="User Avatar"
-                    title="User Image"
-                  />
-                </div>
-                <p className="user_name">{profile?.username}</p>
+              <div className="avatar-dropdown-trigger">
+                <Dropdown overlay={avatarMenu} trigger={["click"]}>
+                  <div className="header_avatar">
+                    <div className="user_avatar">
+                      <img src={ProfileImage} alt="User Avatar" title="User Image" />
+                    </div>
+                    <div className="line">
+                      <p className="user_name">{profile?.username}</p>
+                      <DownArrow />
+                      </div>
+                  </div>
+                </Dropdown>
               </div>
             </Col>
           </Row>
         </Header>
         <Content>
           <div className="bg-darkyellow" style={{ height: "100%" }}>
-            <Routes>
-              {getRoutes()}
-              <Route path="/user-profile" element={<UserProfile />} />
-              <Route path="/change-password" element={<ChangePassword />} />
-              <Route path="/analysis-result" element={<AnalysisResult />} />
-            </Routes>
+            <Routes>{getRoutes()}</Routes>
           </div>
         </Content>
       </Layout>

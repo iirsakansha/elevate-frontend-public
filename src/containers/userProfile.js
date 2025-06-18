@@ -56,29 +56,6 @@ export const UserProfile = (props) => {
                 </Col>
               </Row>
             </div>
-            {/* <div className="profile-info-container">
-              <Row className="profile-info user_name_row">
-                <Col>
-                  <div className="user_name">Jessica Jones</div>
-                </Col>
-              </Row>
-              <Row className="profile-info user_email_row">
-                <Col>
-                  <div>
-                    <i class="fa fa-envelope" aria-hidden="true"></i>
-                  </div>
-                  <div className="user_email">jessicaj@gmail.com</div>
-                </Col>
-              </Row>
-              <Row className="profile-info user_org_name_row">
-                <Col>
-                  <div>
-                    <i class="fa fa-sitemap" aria-hidden="true"></i>
-                  </div>
-                  <div className="user_org_name">WRI</div>
-                </Col>
-              </Row>
-            </div> */}
           </div>
         </Card>
       </div>
