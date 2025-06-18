@@ -10,15 +10,14 @@ import {
   Row,
   Col,
   notification,
-  DatePicker,
-  TimePicker,
   Popover,
 } from "antd";
+import { DatePicker, TimePicker } from "antd";
 import "./style.css";
 import { ReactComponent as FileUploadIcon } from "../assets/icons/file-upload.svg";
 import { ReactComponent as FileDownloadIcon } from "../assets/icons/file-download.svg";
 import { Helpers } from "../helpers";
-import { Prompt, useHistory, useLocation } from "react-router";
+import { Prompt, useNavigate, useLocation } from "react-router";
 import { ApiService } from "../api";
 import { config } from "../config";
 import moment from "moment";
@@ -27,6 +26,11 @@ import { getAnalysisResult } from "../redux/analysis/analysisAction";
 import Loading from "../assets/icons/loading.gif";
 import Info_icon from "../assets/icons/info_icon.png";
 import sempleExcelFile from "../assets/sempleFile/DT_Data_Upload.xls";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { StaticTimePicker } from '@mui/x-date-pickers/StaticTimePicker';
+import "../../src/assets/css/StaticTimePicker.css";
+import dayjs from 'dayjs';
 
 const { Option } = Select;
 const { Step } = Steps;
@@ -87,22 +91,20 @@ const deserializeFormData = (formData) => {
     form3: { ...formData.form3 },
     form4: {
       ...formData.form4,
-      // Handle date arrays - convert ISO strings back to moment objects
       summerDate: Array.isArray(formData.form4.summerDate)
-        ? formData.form4.summerDate.map(date => moment(date))
-        : [moment(formData.form4.summerDate), moment(formData.form4.summerDate)],
+        ? formData.form4.summerDate.map(date => dayjs(date))
+        : [dayjs(formData.form4.summerDate), dayjs(formData.form4.summerDate)],
       winterDate: Array.isArray(formData.form4.winterDate)
-        ? formData.form4.winterDate.map(date => moment(date))
-        : [moment(formData.form4.winterDate), moment(formData.form4.winterDate)],
-      // Handle time strings - convert to moment objects
-      s_pks: moment(formData.form4.s_pks, 'HH:mm'),
-      s_pke: moment(formData.form4.s_pke, 'HH:mm'),
-      s_ops: moment(formData.form4.s_ops, 'HH:mm'),
-      s_ope: moment(formData.form4.s_ope, 'HH:mm'),
-      w_pks: moment(formData.form4.w_pks, 'HH:mm'),
-      w_pke: moment(formData.form4.w_pke, 'HH:mm'),
-      w_ops: moment(formData.form4.w_ops, 'HH:mm'),
-      w_ope: moment(formData.form4.w_ope, 'HH:mm'),
+        ? formData.form4.winterDate.map(date => dayjs(date))
+        : [dayjs(formData.form4.winterDate), dayjs(formData.form4.winterDate)],
+      s_pks: formData.form4.s_pks ? dayjs(formData.form4.s_pks, 'HH:mm') : null,
+      s_pke: formData.form4.s_pke ? dayjs(formData.form4.s_pke, 'HH:mm') : null,
+      s_ops: formData.form4.s_ops ? dayjs(formData.form4.s_ops, 'HH:mm') : null,
+      s_ope: formData.form4.s_ope ? dayjs(formData.form4.s_ope, 'HH:mm') : null,
+      w_pks: formData.form4.w_pks ? dayjs(formData.form4.w_pks, 'HH:mm') : null,
+      w_pke: formData.form4.w_pke ? dayjs(formData.form4.w_pke, 'HH:mm') : null,
+      w_ops: formData.form4.w_ops ? dayjs(formData.form4.w_ops, 'HH:mm') : null,
+      w_ope: formData.form4.w_ope ? dayjs(formData.form4.w_ope, 'HH:mm') : null,
     },
   };
 };
@@ -113,7 +115,7 @@ export const PredictionForm = () => {
   );
   const { profile, isProfileLoading } = useSelector((state) => state.profile);
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
   const location = useLocation();
   const [form1] = Form.useForm();
   const [form2] = Form.useForm();
@@ -128,24 +130,31 @@ export const PredictionForm = () => {
 
   // Prefill forms with template data if available
   useEffect(() => {
-    const templateData = location.state?.templateData;
+    let templateData = location.state?.templateData;
+
+    // Fallback to localStorage if location.state is undefined
+    if (!templateData) {
+      const storedData = localStorage.getItem('templateData');
+      if (storedData) {
+        templateData = JSON.parse(storedData);
+        localStorage.removeItem('templateData');
+      }
+    }
+
     if (templateData) {
       const deserializedData = deserializeFormData(templateData);
-      // Prefill form1
+
       form1.setFieldsValue({
         ...deserializedData.form1,
         categoryData: deserializedData.form1.categoryData,
       });
       setLoadSplit(deserializedData.form1.isLoadSplit);
 
-      // Prefill form2
       form2.setFieldsValue({
         ...deserializedData.form2,
         vehicleCategoryData: deserializedData.form2.vehicleCategoryData,
       });
 
-      // Prefill form3
-      console.log('Form3 pre-filled values:', deserializedData.form3);
       form3.setFieldsValue({
         resolution: deserializedData.form3.resolution,
         BR_F: deserializedData.form3.BR_F,
@@ -158,7 +167,6 @@ export const PredictionForm = () => {
         win_op_cost: deserializedData.form3.win_op_cost,
       });
 
-      // Prefill form4
       form4.setFieldsValue({
         ...deserializedData.form4,
         summerDate: deserializedData.form4.summerDate,
@@ -173,7 +181,6 @@ export const PredictionForm = () => {
         w_ope: deserializedData.form4.w_ope,
       });
 
-      // Update category and vehicle category options
       deserializedData.form1.categoryData.forEach((item) => {
         if (item.category) {
           updateCategoryOptions(item.category);
@@ -185,10 +192,8 @@ export const PredictionForm = () => {
         }
       });
 
-      // Set initial formData
       setFormData(deserializedData);
 
-      // Notify user to upload file
       if (deserializedData.form1.isLoadSplit === 'no') {
         notification.info({
           message: 'File Upload Required',
@@ -267,13 +272,11 @@ export const PredictionForm = () => {
   };
 
   const handleFormSubmit = () => {
-    setError(null); // Reset error state
-    console.log(`Submitting step ${currentStep + 1} of ${stepperSize}`);
+    setError(null);
 
     return currentStep < stepperSize - 1
       ? currentStep === 0
         ? form1.validateFields().then((value) => {
-          console.log('Form 1 validated:', value);
           if (!value.isLoadSplitFile?.file?.response?.file) {
             setError("Data File is not uploaded");
           } else {
@@ -281,28 +284,23 @@ export const PredictionForm = () => {
             setCurrentStep(currentStep + 1);
           }
         }).catch((info) => {
-          console.log('Form 1 Validation Failed:', info);
           setError('Please fill in all required fields correctly.');
         })
         : currentStep === 1
           ? form2.validateFields().then((value) => {
-            console.log('Form 2 validated:', value);
             setFormData({ ...formData, form2: value });
             setCurrentStep(currentStep + 1);
           }).catch((info) => {
-            console.log('Form 2 Validation Failed:', info);
             setError('Please fill in all required fields correctly.');
           })
           : form3.validateFields().then((value) => {
-            console.log('Form 3 validated:', value);
+            console.log("Form3 values:", value); // Debug log
             setFormData({ ...formData, form3: value });
             setCurrentStep(currentStep + 1);
           }).catch((info) => {
-            console.log('Form 3 Validation Failed:', info);
             setError('Please fill in all required fields correctly.');
           })
       : form4.validateFields().then(async (value) => {
-        console.log('Form 4 validated:', value);
         setFormData({ ...formData, form4: value });
 
         const convertCategoryData = (data) =>
@@ -328,8 +326,17 @@ export const PredictionForm = () => {
           return isNaN(parsed) ? fallback : parsed;
         };
 
-        const safeMomentFormat = (date, format) =>
-          date && moment.isMoment(date) ? moment(date).format(format) : '';
+        const safeMomentFormat = (date, format) => {
+          if (!date) return '';
+          // Handle both moment and dayjs objects
+          if (moment.isMoment(date)) {
+            return date.format(format);
+          }
+          if (dayjs.isDayjs(date)) {
+            return date.format('HH:mm');
+          }
+          return '';
+        };
 
         const loadCategoryInt = safeParseInt(
           formData.form1?.loadCategory || value.loadCategory,
@@ -339,8 +346,8 @@ export const PredictionForm = () => {
           formData.form3?.resolution || value.resolution,
           15
         );
-        const sharedSavingsInt = safeParseInt(
-          formData.form3?.sharedSavings || value.sharedSavings,
+        const sharedSavaingInt = safeParseInt(
+          formData.form3?.sharedSavaing || value.sharedSavaing,
           50
         );
         const sum_pk_cost = safeParseInt(
@@ -377,7 +384,7 @@ export const PredictionForm = () => {
           vehicleCategoryData: convertVehicleData(formData.form2?.vehicleCategoryData),
           loadCategory: loadCategoryInt,
           resolution: resolutionInt,
-          sharedSavings: sharedSavingsInt,
+          sharedSavaing: sharedSavaingInt,
           sum_pk_cost,
           sum_zero_cost,
           sum_op_cost,
@@ -400,20 +407,14 @@ export const PredictionForm = () => {
           fileId: formData.form1?.isLoadSplitFile?.file?.response?.id || null,
         };
 
-        console.log('Dispatching getAnalysisResult with data:', combinedData);
-
         try {
-          // Wait for dispatch to complete
           await dispatch(getAnalysisResult(combinedData, () => {
-            console.log("getAnalysisResult dispatched successfully");
-            history.push("/analysis-result"); // Changed to /analysis-result
+            navigate("/analysis-result");
           }));
         } catch (err) {
-          console.error('Failed to dispatch getAnalysisResult:', err);
           setError('Failed to submit analysis. Please try again.');
         }
       }).catch((info) => {
-        console.log('Form 4 Validation Failed:', info);
         setError('Please fill in all required fields correctly.');
       });
   };
@@ -694,7 +695,7 @@ export const PredictionForm = () => {
                                     required: true,
                                     message: "Split Percentage is Required",
                                   },
-                                  Helpers.morethanZeroValidator("Split Percentage"),
+                                  Helpers.moreThanZeroValidator("Split Percentage"),
                                 ]}
                               >
                                 <Input
@@ -730,11 +731,8 @@ export const PredictionForm = () => {
                               name={[field.name, "salesCAGR"]}
                               fieldKey={[field.fieldKey, "salesCAGR"]}
                               rules={[
-                                {
-                                  required: true,
-                                  message: "Sales CAGR is Required",
-                                },
-                                Helpers.morethanZeroValidator("Sales CAGR"),
+                                { required: true, message: "Split Percentage is Required" },
+                                Helpers.moreThanZeroValidator("Split Percentage"),
                               ]}
                             >
                               <Input
@@ -796,36 +794,36 @@ export const PredictionForm = () => {
               >
                 <Row gutter={[20]}>
                   <Col span={12} md={24} lg={12}>
-                      <Form.Item
-                        label="How many categories of electric vehicles are present in the area of study?"
-                        name="numOfvehicleCategory"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Vehicle Category is Required",
+                    <Form.Item
+                      label="How many categories of electric vehicles are present in the area of study?"
+                      name="numOfvehicleCategory"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Vehicle Category is Required",
+                        },
+                        () => ({
+                          validator(_, value) {
+                            const numValue = Number(value); // Convert to number
+                            if (value && (numValue < 1 || numValue > 5 || !Number.isInteger(numValue))) {
+                              return Promise.reject(
+                                "Vehicle Category must be an integer between 1-5"
+                              );
+                            }
+                            return Promise.resolve();
                           },
-                          () => ({
-                            validator(_, value) {
-                              const numValue = Number(value); // Convert to number
-                              if (value && (numValue < 1 || numValue > 5 || !Number.isInteger(numValue))) {
-                                return Promise.reject(
-                                  "Vehicle Category must be an integer between 1-5"
-                                );
-                              }
-                              return Promise.resolve();
-                            },
-                          }),
-                        ]}
-                      >
-                        <Input
-                          placeholder="How many categories of electric vehicles are present in the area of study?"
-                          type="number"
-                          min={1}
-                          max={5}
-                          step={1}
-                          disabled={isanalysisLoading} // Allow editing unless analysis is loading
-                        />
-                      </Form.Item>
+                        }),
+                      ]}
+                    >
+                      <Input
+                        placeholder="How many categories of electric vehicles are present in the area of study?"
+                        type="number"
+                        min={1}
+                        max={5}
+                        step={1}
+                        disabled={isanalysisLoading} // Allow editing unless analysis is loading
+                      />
+                    </Form.Item>
                   </Col>
                 </Row>
 
@@ -940,7 +938,7 @@ export const PredictionForm = () => {
                                       required: true,
                                       message: "Required charging power of vehicle(kW)",
                                     },
-                                    Helpers.morethanZeroValidator(),
+                                    Helpers.moreThanZeroValidator(),
                                   ]}
                                 >
                                   <Input
@@ -1107,11 +1105,8 @@ export const PredictionForm = () => {
                                   name={[field.name, "CAGR_V"]}
                                   fieldKey={[field.fieldKey, "CAGR_V"]}
                                   rules={[
-                                    {
-                                      required: true,
-                                      message: "CAGR of sales Field is Required",
-                                    },
-                                    Helpers.percentageValidator("Sales CAGR"),
+                                    { required: true, message: "Sales CAGR is Required" },
+                                    Helpers.moreThanZeroValidator("Sales CAGR"),
                                   ]}
                                 >
                                   <Input
@@ -1149,7 +1144,6 @@ export const PredictionForm = () => {
                 </Row>
               </Form>
             )}
-
             {currentStep === 2 && (
               <Form
                 className="wri_form"
@@ -1356,12 +1350,13 @@ export const PredictionForm = () => {
                         format="MMM-DD"
                         disabledDate={(d) =>
                           !d ||
-                          d.isAfter(`Jan-${+moment().format("YYYY") + 1}`) ||
-                          d.isSameOrBefore(`Jan-${+moment().format("YYYY") - 1}`)
+                          d.isAfter(dayjs().set('month', 0).set('date', 1).add(1, 'year')) ||
+                          d.isBefore(dayjs().set('month', 0).set('date', 1).subtract(1, 'year'))
                         }
                         onChange={(value) => {
-                          console.log(moment(value[0]).format("MMM-DD"));
-                          console.log(moment(value[1]).format("MMM-DD"));
+                          if (value && value[0]) {
+                            console.log(dayjs(value[0]).format("MMM-DD"));
+                          }
                         }}
                       />
                     </Form.Item>
@@ -1374,7 +1369,7 @@ export const PredictionForm = () => {
                           <Popover
                             content={() =>
                               content(
-                                "“Specify the start/ end of the seasonal load variation in MMM-DD format"
+                                "Specify the start/ end of the seasonal load variation in MMM-DD format"
                               )
                             }
                             trigger="hover"
@@ -1397,179 +1392,371 @@ export const PredictionForm = () => {
                         format="MMM-DD"
                         disabledDate={(d) =>
                           !d ||
-                          d.isAfter(`Jan-${+moment().format("YYYY") + 1}`) ||
-                          d.isSameOrBefore(`Jan-${+moment().format("YYYY") - 1}`)
+                          d.isAfter(dayjs().set('month', 0).set('date', 1).add(1, 'year')) ||
+                          d.isBefore(dayjs().set('month', 0).set('date', 1).subtract(1, 'year'))
                         }
                         onChange={(value) => {
-                          console.log(moment(value[0]).format("MMM-DD"));
-                          console.log(moment(value[1]).format("MMM-DD"));
+                          if (value && value[0]) {
+                            console.log(dayjs(value[0]).format("MMM-DD"));
+                          }
                         }}
                       />
                     </Form.Item>
                   </Col>
-                  <Row gutter={[20]} style={{ width: "100%" }}>
-                    <Col span={12} xs={24} xl={12}>
-                      <h3>
-                        Specify the Time of the Day (ToD) slots of the utility for loads other than electric vehicles at present
-                      </h3>
-                    </Col>
-                    <Row gutter={[20]} className="third_form_row">
-                      <Col span={6} xs={24} md={12} xl={8} xxl={6}>
-                        <b>Summer season</b>
-                        <Form.Item
-                          label="Peak time start"
-                          name="s_pks"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Peak time start Field is Required",
-                            },
-                          ]}
-                        >
-                          <TimePicker format="HH:mm" />
-                        </Form.Item>
-                        <Form.Item
-                          label="Peak time end"
-                          name="s_pke"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Peak time end Field is Required",
-                            },
-                          ]}
-                        >
-                          <TimePicker format="HH:mm" />
-                        </Form.Item>
-                        <Form.Item
-                          label="Peak surcharge"
-                          name="s_sx"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Peak surcharge Field is Required",
-                            },
-                            Helpers.percentageValidator("sx"),
-                          ]}
-                        >
-                          <Input type="number" />
-                        </Form.Item>
-                        <Form.Item
-                          label="Off-peak time start"
-                          name="s_ops"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Off-peak time start Field is Required",
-                            },
-                          ]}
-                        >
-                          <TimePicker format="HH:mm" />
-                        </Form.Item>
-                        <Form.Item
-                          label="Off-peak time end"
-                          name="s_ope"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Off-peak time end Field is Required",
-                            },
-                          ]}
-                        >
-                          <TimePicker format="HH:mm" />
-                        </Form.Item>
-                        <Form.Item
-                          label="Off-peak rebate"
-                          name="s_rb"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Off-peak rebate Field is Required",
-                            },
-                            Helpers.percentageValidator("rb"),
-                          ]}
-                        >
-                          <Input type="number" />
-                        </Form.Item>
-                      </Col>
-                      <Col span={6} xs={24} md={12} xl={8} xxl={6}>
-                        <b>Winter season</b>
-                        <Form.Item
-                          label="Peak time start"
-                          name="w_pks"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Peak time start Field is Required",
-                            },
-                          ]}
-                        >
-                          <TimePicker format="HH:mm" />
-                        </Form.Item>
-                        <Form.Item
-                          label="Peak time end"
-                          name="w_pke"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Peak time end Field is Required",
-                            },
-                          ]}
-                        >
-                          <TimePicker format="HH:mm" />
-                        </Form.Item>
-                        <Form.Item
-                          label="Peak surcharge"
-                          name="w_sx"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Peak surcharge Field is Required",
-                            },
-                            Helpers.percentageValidator("sx"),
-                          ]}
-                        >
-                          <Input type="number" />
-                        </Form.Item>
-                        <Form.Item
-                          label="Off-peak time start"
-                          name="w_ops"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Off-peak time start Field is Required",
-                            },
-                          ]}
-                        >
-                          <TimePicker format="HH:mm" />
-                        </Form.Item>
-                        <Form.Item
-                          label="Off-peak time end"
-                          name="w_ope"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Off-peak time end Field is Required",
-                            },
-                          ]}
-                        >
-                          <TimePicker format="HH:mm" />
-                        </Form.Item>
-                        <Form.Item
-                          label="Off-peak rebate"
-                          name="w_rb"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Off-peak rebate Field is Required",
-                            },
-                            Helpers.percentageValidator("rb"),
-                          ]}
-                        >
-                          <Input type="number" />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-                  </Row>
+                </Row>
+
+                <Row gutter={[20]} style={{ width: "100%" }}>
+                  <Col span={24}>
+                    <h3>
+                      Specify the Time of the Day (ToD) slots of the utility for loads other than electric vehicles at present
+                    </h3>
+                  </Col>
+
+                  {/* Summer Season - First Row: Four Time Pickers */}
+                  <Col span={24}>
+                    <div className="season-section">
+                      <b>Summer season</b>
+                      <Row gutter={[10]} wrap={false}>
+                        <Col span={6} xs={24} sm={12} md={6}>
+                          <Form.Item
+                            label="Peak time start"
+                            name="s_pks"
+                            rules={[{ required: true, message: "Peak time start Field is Required" }]}
+                          >
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <div className="mui-static-time-picker">
+                                <StaticTimePicker
+                                  orientation="landscape"
+                                  disabled={isanalysisLoading}
+                                  onChange={(value) => {
+                                    form4.setFieldsValue({ s_pks: dayjs(value) });
+                                  }}
+                                  value={form4.getFieldValue('s_pks') || null}
+                                  autoFocus={true}
+                                  defaultView="hours"
+                                  displayStaticWrapperAs="desktop"
+                                  showToolbar={true} // Ensure the time label is shown
+                                  slotProps={{
+                                    toolbar: {
+                                      hidden: false,
+                                      sx: {
+                                        padding: '8px 0',
+                                        justifyContent: 'center',
+                                      },
+                                    },
+                                  }}
+                                />
+                              </div>
+                            </LocalizationProvider>
+                          </Form.Item>
+                        </Col>
+                        <Col span={6} xs={24} sm={12} md={6}>
+                          <Form.Item
+                            label="Peak time end"
+                            name="s_pke"
+                            rules={[{ required: true, message: "Peak time end Field is Required" }]}
+                          >
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <div className="mui-static-time-picker">
+                                <StaticTimePicker
+                                  orientation="landscape"
+                                  disabled={isanalysisLoading}
+                                  onChange={(value) => {
+                                    form4.setFieldsValue({ s_pke: dayjs(value) });
+                                  }}
+                                  value={form4.getFieldValue('s_pke') || null}
+                                  autoFocus={true}
+                                  defaultView="hours"
+                                  displayStaticWrapperAs="desktop"
+                                  showToolbar={true}
+                                  slotProps={{
+                                    toolbar: {
+                                      hidden: false,
+                                      sx: {
+                                        padding: '8px 0',
+                                        justifyContent: 'center',
+                                      },
+                                    },
+                                  }}
+                                />
+                              </div>
+                            </LocalizationProvider>
+                          </Form.Item>
+                        </Col>
+                        <Col span={6} xs={24} sm={12} md={6}>
+                          <Form.Item
+                            label="Off-peak time start"
+                            name="s_ops"
+                            rules={[{ required: true, message: "Off-peak time start Field is Required" }]}
+                          >
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <div className="mui-static-time-picker">
+                                <StaticTimePicker
+                                  orientation="landscape"
+                                  disabled={isanalysisLoading}
+                                  onChange={(value) => {
+                                    form4.setFieldsValue({ s_ops: dayjs(value) });
+                                  }}
+                                  value={form4.getFieldValue('s_ops') || null}
+                                  autoFocus={true}
+                                  defaultView="hours"
+                                  displayStaticWrapperAs="desktop"
+                                  showToolbar={true}
+                                  slotProps={{
+                                    toolbar: {
+                                      hidden: false,
+                                      sx: {
+                                        padding: '8px 0',
+                                        justifyContent: 'center',
+                                      },
+                                    },
+                                  }}
+                                />
+                              </div>
+                            </LocalizationProvider>
+                          </Form.Item>
+                        </Col>
+                        <Col span={6} xs={24} sm={12} md={6}>
+                          <Form.Item
+                            label="Off-peak time end"
+                            name="s_ope"
+                            rules={[{ required: true, message: "Off-peak time end Field is Required" }]}
+                          >
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <div className="mui-static-time-picker">
+                                <StaticTimePicker
+                                  orientation="landscape"
+                                  disabled={isanalysisLoading}
+                                  onChange={(value) => {
+                                    form4.setFieldsValue({ s_ope: dayjs(value) });
+                                  }}
+                                  value={form4.getFieldValue('s_ope') || null}
+                                  autoFocus={true}
+                                  defaultView="hours"
+                                  displayStaticWrapperAs="desktop"
+                                  showToolbar={true}
+                                  slotProps={{
+                                    toolbar: {
+                                      hidden: false,
+                                      sx: {
+                                        padding: '8px 0',
+                                        justifyContent: 'center',
+                                      },
+                                    },
+                                  }}
+                                />
+                              </div>
+                            </LocalizationProvider>
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
+                  </Col>
+
+                  {/* Summer Season - Second Row: Peak Surcharge and Off-Peak Rebate */}
+                  <Col span={24}>
+                    <div className="season-section">
+                      <Row gutter={[10]}>
+                        <Col span={12} xs={24} sm={12} md={12}>
+                          <Form.Item
+                            label="Peak surcharge"
+                            name="s_sx"
+                            rules={[
+                              { required: true, message: "Peak surcharge Field is Required" },
+                              Helpers.percentageValidator("sx"),
+                            ]}
+                          >
+                            <Input type="number" disabled={isanalysisLoading} />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12} xs={24} sm={12} md={12}>
+                          <Form.Item
+                            label="Off-peak rebate"
+                            name="s_rb"
+                            rules={[
+                              { required: true, message: "Off-peak rebate Field is Required" },
+                              Helpers.percentageValidator("rb"),
+                            ]}
+                          >
+                            <Input type="number" disabled={isanalysisLoading} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
+                  </Col>
+
+                  {/* Winter Season - Third Row: Four Time Pickers */}
+                  <Col span={24}>
+                    <div className="season-section">
+                      <b>Winter season</b>
+                      <Row gutter={[10]} wrap={false}>
+                        <Col span={6} xs={24} sm={12} md={6}>
+                          <Form.Item
+                            label="Peak time start"
+                            name="w_pks"
+                            rules={[{ required: true, message: "Peak time start Field is Required" }]}
+                          >
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <div className="mui-static-time-picker">
+                                <StaticTimePicker
+                                  orientation="landscape"
+                                  disabled={isanalysisLoading}
+                                  onChange={(value) => {
+                                    form4.setFieldsValue({ w_pks: dayjs(value) });
+                                  }}
+                                  value={form4.getFieldValue('w_pks') || null}
+                                  autoFocus={true}
+                                  defaultView="hours"
+                                  displayStaticWrapperAs="desktop"
+                                  showToolbar={true}
+                                  slotProps={{
+                                    toolbar: {
+                                      hidden: false,
+                                      sx: {
+                                        padding: '8px 0',
+                                        justifyContent: 'center',
+                                      },
+                                    },
+                                  }}
+                                />
+                              </div>
+                            </LocalizationProvider>
+                          </Form.Item>
+                        </Col>
+                        <Col span={6} xs={24} sm={12} md={6}>
+                          <Form.Item
+                            label="Peak time end"
+                            name="w_pke"
+                            rules={[{ required: true, message: "Peak time end Field is Required" }]}
+                          >
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <div className="mui-static-time-picker">
+                                <StaticTimePicker
+                                  orientation="landscape"
+                                  disabled={isanalysisLoading}
+                                  onChange={(value) => {
+                                    form4.setFieldsValue({ w_pke: dayjs(value) });
+                                  }}
+                                  value={form4.getFieldValue('w_pke') || null}
+                                  autoFocus={true}
+                                  defaultView="hours"
+                                  displayStaticWrapperAs="desktop"
+                                  showToolbar={true}
+                                  slotProps={{
+                                    toolbar: {
+                                      hidden: false,
+                                      sx: {
+                                        padding: '8px 0',
+                                        justifyContent: 'center',
+                                      },
+                                    },
+                                  }}
+                                />
+                              </div>
+                            </LocalizationProvider>
+                          </Form.Item>
+                        </Col>
+                        <Col span={6} xs={24} sm={12} md={6}>
+                          <Form.Item
+                            label="Off-peak time start"
+                            name="w_ops"
+                            rules={[{ required: true, message: "Off-peak time start Field is Required" }]}
+                          >
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <div className="mui-static-time-picker">
+                                <StaticTimePicker
+                                  orientation="landscape"
+                                  disabled={isanalysisLoading}
+                                  onChange={(value) => {
+                                    form4.setFieldsValue({ w_ops: dayjs(value) });
+                                  }}
+                                  value={form4.getFieldValue('w_ops') || null}
+                                  autoFocus={true}
+                                  defaultView="hours"
+                                  displayStaticWrapperAs="desktop"
+                                  showToolbar={true}
+                                  slotProps={{
+                                    toolbar: {
+                                      hidden: false,
+                                      sx: {
+                                        padding: '8px 0',
+                                        justifyContent: 'center',
+                                      },
+                                    },
+                                  }}
+                                />
+                              </div>
+                            </LocalizationProvider>
+                          </Form.Item>
+                        </Col>
+                        <Col span={6} xs={24} sm={12} md={6}>
+                          <Form.Item
+                            label="Off-peak time end"
+                            name="w_ope"
+                            rules={[{ required: true, message: "Off-peak time end Field is Required" }]}
+                          >
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <div className="mui-static-time-picker">
+                                <StaticTimePicker
+                                  orientation="landscape"
+                                  disabled={isanalysisLoading}
+                                  onChange={(value) => {
+                                    form4.setFieldsValue({ w_ope: dayjs(value) });
+                                  }}
+                                  value={form4.getFieldValue('w_ope') || null}
+                                  autoFocus={true}
+                                  defaultView="hours"
+                                  displayStaticWrapperAs="desktop"
+                                  showToolbar={true}
+                                  slotProps={{
+                                    toolbar: {
+                                      hidden: false,
+                                      sx: {
+                                        padding: '8px 0',
+                                        justifyContent: 'center',
+                                      },
+                                    },
+                                  }}
+                                />
+                              </div>
+                            </LocalizationProvider>
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
+                  </Col>
+
+                  {/* Winter Season - Fourth Row: Peak Surcharge and Off-Peak Rebate */}
+                  <Col span={24}>
+                    <div className="season-section">
+                      <Row gutter={[10]}>
+                        <Col span={12} xs={24} sm={12} md={12}>
+                          <Form.Item
+                            label="Peak surcharge"
+                            name="w_sx"
+                            rules={[
+                              { required: true, message: "Peak surcharge Field is Required" },
+                              Helpers.percentageValidator("sx"),
+                            ]}
+                          >
+                            <Input type="number" disabled={isanalysisLoading} />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12} xs={24} sm={12} md={12}>
+                          <Form.Item
+                            label="Off-peak rebate"
+                            name="w_rb"
+                            rules={[
+                              { required: true, message: "Off-peak rebate Field is Required" },
+                              Helpers.percentageValidator("rb"),
+                            ]}
+                          >
+                            <Input type="number" disabled={isanalysisLoading} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
+                  </Col>
                 </Row>
               </Form>
             )}

@@ -212,8 +212,8 @@ input {
 
 .ant-btn.form_btn:hover,
 .ant-btn.form_btn:active {
-  border-color: #ffdc92;
-  background: #ffdc92;
+  border-color: #ffdc92 !important;
+  background: #ffdc92 !important;
 }
 
 .ant-steps-item-finish .ant-steps-item-icon {
@@ -221,14 +221,14 @@ input {
 }
 
 .ant-steps-item-finish .ant-steps-item-icon .ant-steps-icon {
-  color: #f3b229;
+  color: #ffdc92 !important;
 }
 
 .ant-steps-item-finish
   .ant-steps-item-container
   .ant-steps-item-content
   .ant-steps-item-title::after {
-  background-color: #f3b229;
+  background-color: #f3b229 !important;
 }
 
 .alert.alert-danger {
@@ -468,7 +468,7 @@ input {
     display: block;
     width: 9999px;
     height: 1px;
-    background: #f0f0f0;
+    background: #ffdc92;
     content: "";
   }
   .ev_analysis_page .ant-form-vertical .uploadfield_row .ant-form-item {

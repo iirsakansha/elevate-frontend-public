@@ -1,21 +1,35 @@
-import { Switch, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import { Home } from "./containers/home";
-
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { SignIn } from "./containers/signIn"
+import { SignIn } from "./containers/signIn";
 import { PrivateRoute } from "./helpers/privateRoute";
 
 function App() {
   return (
-    <Switch>
-      <Route exact path='/superadmin' component={() => {
-        window.location.href = 'http://3.109.220.180/superadmin/';
-        return <></>;
-      }} />
-      <Route exact path="/signin" component={SignIn} />
-      <PrivateRoute path="/" component={Home} />
-    </Switch>
+    <Routes>
+      <Route
+        path="/superadmin"
+        element={
+          <div className="admin-redirect">
+            <h3>Super Admin Portal</h3>
+            <p>This would redirect to admin portal in production</p>
+            <button onClick={() => alert("Would redirect to admin in production")}>
+              Simulate Redirect
+            </button>
+          </div>
+        }
+      />
+      <Route path="/signin" element={<SignIn />} />
+      <Route
+        path="/*"
+        element={
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        }
+      />
+    </Routes>
   );
 }
 

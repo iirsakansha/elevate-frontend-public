@@ -15,7 +15,12 @@ export const signInAction = (cradentials, cb) => {
     } catch (err) {
       dispatch({
         type: AuthActionTypes.SIGN_IN_FAILED,
-        err: err.response?.data?.non_field_errors || "",
+        err: err.response?.data?.non_field_errors || "Sign-in failed",
+      });
+      notification.error({
+        message: "Sign-in Failed",
+        description: err.response?.data?.non_field_errors || "An error occurred during sign-in.",
+        placement: "bottomRight",
       });
     }
   };
@@ -55,7 +60,6 @@ export const signOutAction = (cb) => {
       dispatch({ type: AuthActionTypes.SIGN_IN_SUCCESS });
     } catch (err) {
       console.log(err.response);
-      // dispatch({ type: AuthActionTypes.SIGN_IN_FAILED, err: err.message });
     }
   };
 };

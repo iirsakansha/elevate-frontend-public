@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Table, Space, Modal, Form, Input, DatePicker, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   getTemplatesAction,
   createTemplateAction,
@@ -482,14 +482,14 @@ const predefinedTemplates = [
   },
 ];
 
-// Helper function to serialize formData for safe passing through history
+// Helper function to serialize formData for safe passing through navigate
 const serializeFormData = (formData) => {
   return JSON.parse(JSON.stringify(formData));
 };
 
 export const ReadyTempaltes = () => {
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
   const { templates, loading } = useSelector(state => state.templates || { templates: [], loading: false });
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
@@ -537,10 +537,12 @@ export const ReadyTempaltes = () => {
 
   const handleSeeResults = (template) => {
     try {
-      // Serialize the formData to ensure it contains only plain objects
       const serializedFormData = serializeFormData(template.formData);
 
-      history.push({
+      // Save to localStorage
+      localStorage.setItem('templateData', JSON.stringify(serializedFormData));
+
+      navigate({
         pathname: '/ev-analysis',
         state: { templateData: serializedFormData },
       });

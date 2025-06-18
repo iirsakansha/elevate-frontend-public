@@ -1,0 +1,173 @@
+.mui-static-time-picker .MuiPickersLayout-root {
+  overflow: visible !important;
+  z-index: 1000;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 150px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mui-static-time-picker .MuiTimeClock-root {
+  margin: 0 auto;
+  max-height: 252px;
+  overflow-y: auto;
+  transform: scale(0.8);
+  transform-origin: center center;
+}
+
+.mui-static-time-picker .MuiPickersArrowSwitcher-root {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: -31px -30px 0px 0px;
+}
+
+.mui-static-time-picker .MuiPickersArrowSwitcher-button {
+  font-size: 30px;
+}
+
+.mui-static-time-picker .MuiPickersArrowSwitcher-button:hover {
+  background-color: transparent;
+}
+
+
+.mui-static-time-picker .MuiClock-pin {
+  display: none;
+}
+
+.mui-static-time-picker .MuiClockPicker-root {
+  margin: 0 auto;
+}
+
+.mui-static-time-picker .MuiTypography-root {
+  font-size: 14px; 
+}
+
+.css-whkr7e-MuiPickersLayout-root {
+  background-color: #f3b2290f !important;
+}
+
+.MuiClockPointer-root {
+  background-color: #faad14 !important;
+}
+
+.MuiClock-pin {
+  background-color: #faad14 !important;
+}
+
+.MuiClockPointer-thumb {
+  border-color: #faad14 !important;
+  background-color: #faad14 !important;
+}
+
+.MuiClockNumber-root.Mui-selected {
+  background-color: #faad14 !important;
+  color: white !important;
+}
+
+.MuiTimePickerToolbar-root {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 8px 0 !important;
+  width: 100%; 
+}
+
+.MuiTimePickerToolbar-hourMinuteLabel {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  margin: 0px 0px 0px 36px;
+}
+
+.MuiTypography-h3 {
+  font-size: 24px !important;
+  font-weight: bold !important;
+  color: #000 !important;
+  line-height: 1 !important;
+}
+
+.MuiTimePickerToolbar-ampmSelection {
+  display: flex !important;
+  gap: 4px !important;
+  font-size: 20px !important;
+  color: #000 !important;
+  margin-left: 8px !important;
+  display: none !important;
+}
+
+.css-1dq2mpt-MuiButtonBase-root-MuiIconButton-root-MuiClock-pmButton , .css-1tci2yf-MuiButtonBase-root-MuiIconButton-root-MuiClock-amButton{
+  background: #faad14 !important;
+}
+
+
+.MuiTimePickerToolbar-ampmLabel {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #000 !important;
+}
+
+.MuiTimePickerToolbar-ampmLabel.Mui-selected {
+  color: #000 !important;
+  background-color: transparent !important;
+}
+
+.css-1uent87-MuiButtonBase-root-MuiButton-root {
+  color: black !important;
+  display: none !important;
+}
+
+.ant-form-item-label > label {
+  font-size: 12px !important;
+  margin-bottom: 4px;
+  color: #666;
+}
+
+.ant-form-item {
+  margin-bottom: 8px;
+}
+
+.season-section {
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.ant-row-no-wrap {
+  flex-wrap: nowrap !important;
+}
+
+.ant-form-item-has-error .ant-input {
+  border-color: #ff4d4f;
+}
+
+@media (max-width: 1200px) {
+  .mui-static-time-picker .MuiTimeClock-root {
+    transform: scale(0.6);
+  }
+  
+  .MuiTypography-h3 {
+    font-size: 20px !important;
+  }
+  
+  .MuiTimePickerToolbar-ampmSelection {
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .mui-static-time-picker .MuiTimeClock-root {
+    transform: scale(0.5);
+  }
+  
+  .MuiTypography-h3 {
+    font-size: 18px !important;
+  }
+  
+  .MuiTimePickerToolbar-ampmSelection {
+    font-size: 10px !important;
+  }
+}

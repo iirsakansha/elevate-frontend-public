@@ -7,7 +7,7 @@ import xlsx_img from "../assets/icons/xlsx.png";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { deleteAnlysisResult } from "../redux/analysis/analysisAction";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router";
 
 export const AnalysisResult = (props) => {
   const { analysisResult } = useSelector((state) => state.analysis);
@@ -16,7 +16,7 @@ export const AnalysisResult = (props) => {
       ? JSON.parse(analysisResult)
       : analysisResult || {};
 
-  const history = useHistory();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   return (
@@ -34,7 +34,7 @@ export const AnalysisResult = (props) => {
                     dispatch(
                       deleteAnlysisResult({ folderId: AnalysisResultData.id })
                     );
-                    history.push("/ev-analysis");
+                    navigate("/ev-analysis");
                   }}
                 >
                   New Analysis
@@ -48,7 +48,6 @@ export const AnalysisResult = (props) => {
                     const files = (item && item?.split("/")) || [];
 
                     const download = (e) => {
-                      console.log(e.target.href);
                       fetch(fileUrl, {
                         method: "GET",
                         headers: {},
@@ -107,7 +106,6 @@ export const AnalysisResult = (props) => {
                     const files = (item && item?.split("/")) || [];
 
                     const download = (e) => {
-                      console.log(e.target.href);
                       fetch(fileUrl, {
                         method: "GET",
                         headers: {},

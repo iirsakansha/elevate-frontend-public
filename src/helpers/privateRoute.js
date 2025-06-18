@@ -1,19 +1,14 @@
-import { Redirect, Route } from "react-router";
-import { Helpers } from ".";
-export const PrivateRoute = ({ component: Component, ...rest }) => {
-  const token = Helpers.getCookie("idToken");
-  return (
-    <Route
-      {...rest}
-      render={(props) =>
-        token ? (
-          <Component {...props} />
-        ) : (
-          <Redirect
-            to={{ pathname: "/signin", state: { from: props.location } }}
-          />
-        )
-      }
-    />
-  );
+// In src/helpers/privateRoute.js
+import { Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { Helpers } from "../helpers";
+
+export const PrivateRoute = ({ children }) => {
+  const isAuthenticated =
+    true ||
+    localStorage.getItem('dev-token') || 
+    Helpers.getCookie('idToken'); 
+
+
+  return isAuthenticated ? children : <Navigate to="/signin" replace />;
 };

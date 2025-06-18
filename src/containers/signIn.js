@@ -1,13 +1,13 @@
 import { Form, Input, Button as AntButton, Layout, Card } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router-dom"; 
 
 import { ReactComponent as AppIcon } from "../assets/icons/app-icon.svg";
 import { signInAction } from "../redux/auth/authAction";
 
 export const SignIn = (props) => {
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const { isSigninLoading, isSigninError } = useSelector(
     (state) => state.user
@@ -16,17 +16,16 @@ export const SignIn = (props) => {
   const handleSignIn = (value) => {
     dispatch(
       signInAction(value, () => {
-        history.replace("/ev-analysis");
+        navigate("/ev-analysis", { replace: true });
       })
     );
   };
+
   return (
     <Layout
-      fluid
       className="bg-darkyellow h-100vh d-flex align-items-center justify-content-center user_signin_page"
     >
       <div className="signin_container">
-        {/* <AppIcon/> */}
         <Card className="w-25 p-4" title={<AppIcon />}>
           <div className="form_title">
             <h2>Sign In</h2>
@@ -56,22 +55,18 @@ export const SignIn = (props) => {
             <AntButton
               htmlType="submit"
               className="form_btn"
-              color="info"
               loading={isSigninLoading}
             >
               Sign In
             </AntButton>
             {isSigninError && (
-              <>
-                <div class="alert alert-danger mt-3" role="alert">
-                  {isSigninError}
-                </div>
-              </>
+              <div className="alert alert-danger mt-3" role="alert">
+                {isSigninError}
+              </div>
             )}
           </Form>
         </Card>
       </div>
-      {/* </div> */}
     </Layout>
   );
 };
