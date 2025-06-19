@@ -9,12 +9,14 @@ import ProfileImage from "../assets/icons/profile.png";
 import { useDispatch, useSelector } from "react-redux";
 import { signOutAction } from "../redux/auth/authAction.js";
 import { getProfile } from "../redux/profile/profileAction.js";
+import { useLocation } from "react-router-dom";
 
 const { Sider, Content, Header } = Layout;
 
 export const Home = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const profile = useSelector((state) => state.profile.profile);
   const { analysisResult } = useSelector((state) => state.analysis);
 
@@ -59,11 +61,11 @@ export const Home = () => {
           <AppIcon />
         </div>
         <Divider />
-        <Menu>
-          <Menu.Item key="templates">
+        <Menu selectedKeys={[location.pathname]}>
+          <Menu.Item key="/templates">
             <Link to="/templates">EV Scenarios</Link>
           </Menu.Item>
-          <Menu.Item key="ev-analysis">
+          <Menu.Item key="/ev-analysis">
             <Link to="/ev-analysis">Analysis</Link>
           </Menu.Item>
         </Menu>

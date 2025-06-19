@@ -1,10 +1,11 @@
-import { Avatar, Divider, Card, Row, Col, Spin } from "antd";
+import { Avatar, Divider, Card, Row, Col, Spin, Button } from "antd";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import ProfileImage from "../assets/icons/profile.png";
 
 export const UserProfile = (props) => {
-
   const { profile, isProfileLoading } = useSelector((state) => state.profile);
+  const navigate = useNavigate();
 
   if (isProfileLoading) {
     return (
@@ -17,7 +18,19 @@ export const UserProfile = (props) => {
   return (
     <>
       <div className="pb-8 pt-5 pt-md-8 userprofile_page">
-        <Card className="card-stats mb-4 mb-xl-0 px-5 py-4" title="Profile">
+        <Card
+          className="card-stats mb-4 mb-xl-0 px-5 py-4"
+          title="Profile"
+          extra={
+            <Button
+              onClick={() => navigate(-1)}
+              className="back-button"
+              style={{ backgroundColor: '#f3b229', borderColor: '#f3b229' }}
+            >
+              Back
+            </Button>
+          }
+        >
           <div>
             <Row className="user_avatar">
               <Col>
@@ -29,7 +42,7 @@ export const UserProfile = (props) => {
               <Row className="profile-info">
                 <Col>
                   <div>
-                    <i class="fa fa-user" aria-hidden="true"></i>
+                    <i className="fa fa-user" aria-hidden="true"></i>
                     <span>Name</span>
                   </div>
                   <div>{profile?.username || "---"}</div>
@@ -39,7 +52,7 @@ export const UserProfile = (props) => {
               <Row className="profile-info">
                 <Col>
                   <div>
-                    <i class="fa fa-envelope" aria-hidden="true"></i>
+                    <i className="fa fa-envelope" aria-hidden="true"></i>
                     <span>Email</span>
                   </div>
                   <div>{profile?.email || "---"}</div>
@@ -49,7 +62,7 @@ export const UserProfile = (props) => {
               <Row className="profile-info">
                 <Col>
                   <div>
-                    <i class="fa fa-sitemap" aria-hidden="true"></i>
+                    <i className="fa fa-sitemap" aria-hidden="true"></i>
                     <span>Organization Name</span>
                   </div>
                   <div>World Resources Institute</div>

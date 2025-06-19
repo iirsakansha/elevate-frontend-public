@@ -37,7 +37,7 @@
   width: 50px;
   border: 2px solid #fff;
   border-radius: 50%;
-  margin-top:10px;
+  margin-top: 10px;
 }
 
 .header_avatar .user_name {
@@ -46,8 +46,10 @@
   font-weight: 500;
 }
 
-:where(.css-dev-only-do-not-override-36gkoj).ant-dropdown .ant-dropdown-menu, :where(.css-dev-only-do-not-override-36gkoj).ant-dropdown-menu-submenu .ant-dropdown-menu{
-  margin:-15px 0px 0px 174px;
+:where(.css-dev-only-do-not-override-36gkoj).ant-dropdown .ant-dropdown-menu,
+:where(.css-dev-only-do-not-override-36gkoj).ant-dropdown-menu-submenu
+  .ant-dropdown-menu {
+  margin: -15px 0px 0px 174px;
 }
 
 header.ant-layout-header .header_title {
@@ -91,7 +93,7 @@ header.ant-layout-header .header_title {
 }
 
 .ant-layout-has-sider .ant-layout-sider .ant-menu-item a:hover,
-.ant-menu:not(.ant-menu-horizontal) .ant-menu-item-selected.ant-menu-item a {
+.ant-menu:not(.ant-menu-horizontal) {
   color: #000;
   font-weight: 500;
 }
@@ -130,9 +132,6 @@ header.ant-layout-header .header_title {
 
 /* Site Form Design */
 
-.wri_form .ant-picker {
-}
-
 .wri_form .ant-form-item-control-input-content input,
 .wri_form .ant-input-affix-wrappe input,
 .wri_form
@@ -146,7 +145,9 @@ header.ant-layout-header .header_title {
   border-bottom: 1px solid #999;
   box-shadow: none !important;
 }
-
+.wri_form .ant-form-item-control-input-content .ant-select .ant-select-selector:hover{
+  border-color: #e09a3a !important;
+}
 .wri_form .ant-input-affix-wrapper,
 .wri_form .ant-picker {
   padding: 0;
@@ -237,6 +238,10 @@ input {
   background-color: #f3b229 !important;
 }
 
+:where(.css-dev-only-do-not-override-36gkoj).ant-steps .ant-steps-item-title {
+  font-size: 20px;
+}
+
 .alert.alert-danger {
   color: #ff4d4f;
   font-weight: 500;
@@ -249,18 +254,6 @@ input {
   )::before {
   display: none;
 }
-
-/* .ant-form-item-label
-  > label.ant-form-item-required:not(.ant-form-item-required-mark-optional)::after,
-.lablerequired::after {
-  display: inline-block;
-  margin-right: 4px;
-  color: #ff4d4f;
-  font-size: 14px;
-  font-family: SimSun, sans-serif;
-  line-height: 1;
-  content: "*";
-} */
 
 .upload_field:not(.small) .ant-col.ant-form-item-control {
   border: 3px dotted #d7d7d7;
@@ -314,7 +307,7 @@ input {
   background-image: linear-gradient(-225deg, #fff 0%, #000 100%);
   background-size: 200% auto;
   background-clip: text;
-  text-fill-color: transparent;
+  text-emphasis-color: transparent;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: textclip 3s linear reverse infinite;
@@ -661,16 +654,19 @@ input {
   margin-right: 8px;
 }
 
-.line{
+.line {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.line svg{
+.line svg {
   margin-bottom: 15px;
 }
 
+.back-button:hover {
+  color: black !important;
+}
 /* Profile Page Design END */
 
 /* Sign In Page */
@@ -734,7 +730,7 @@ input {
 
 .signin_form .ant-btn.form_btn {
   width: 100%;
-  justify-content:left;
+  justify-content: left;
 }
 
 .templates-header {
@@ -761,7 +757,7 @@ input {
   align-items: center;
 }
 
-.analysis:hover{
+.analysis:hover {
   border-color: #e09a3a !important;
 }
 
@@ -770,6 +766,10 @@ input {
   font-weight: 500;
   margin-bottom: 1rem;
   padding-left: 7px;
+}
+
+:where(.css-dev-only-do-not-override-36gkoj).ant-table-wrapper .ant-table.ant-table-middle{
+  font-size: 16px;
 }
 
 /* Sign In Page END */
@@ -829,9 +829,10 @@ input {
 .templates-table .ant-table-thead > tr > th {
   background-color: #fff;
   border-bottom: 1px solid #f0f0f0;
-  font-weight: 600;
-  color: #333;
-  padding: 16px;
+  font-weight: 700;
+  color: #000000e0;
+  font-size: 20px;
+  background-color: #0505050f;
 }
 
 .templates-table .ant-table-tbody > tr > td {

@@ -9,10 +9,12 @@ import {
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { changePassword } from "../redux/auth/authAction";
+import { useNavigate } from "react-router-dom";
 
 export const ChangePassword = (props) => {
   const [error, setError] = useState(null);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { isChangePasswordLoading, isChangePasswordError } = useSelector(
     (state) => state.user
   );
@@ -22,6 +24,15 @@ export const ChangePassword = (props) => {
         <Card
           className="card-stats mb-4 mb-xl-0 px-5 py-4"
           title="Change Password"
+          extra={
+            <AntButton
+              onClick={() => navigate(-1)}
+              className="back-button"
+              style={{ backgroundColor: '#f3b229', borderColor: '#f3b229' }}
+            >
+              Back
+            </AntButton>
+          }
         >
           <Form
             className="wri_form"

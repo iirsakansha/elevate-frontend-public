@@ -1799,10 +1799,10 @@ export const PredictionForm = () => {
                 </Row>
               </Form>
             )}
-            <div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               {currentStep !== 0 && (
                 <AntdButton
-                  className="form_btn"
+                  className="form_btn next-back"
                   color="info"
                   onClick={() => {
                     setCurrentStep(currentStep - 1);
@@ -1812,7 +1812,7 @@ export const PredictionForm = () => {
                 </AntdButton>
               )}
               <AntdButton
-                className="form_btn"
+                className="form_btn next-back"
                 htmlType="Submit"
                 onClick={handleFormSubmit}
               >
