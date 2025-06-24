@@ -48,4 +48,7 @@ export const ApiService = {
       },
     });
   },
+  decodeToken(token) {
+    return axios.get(`${API_BASE_URL}/admin_panel/api/invitation/${token}`);
+  },
 };
