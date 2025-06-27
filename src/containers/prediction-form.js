@@ -30,6 +30,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { StaticTimePicker } from '@mui/x-date-pickers/StaticTimePicker';
 import "../../src/assets/css/StaticTimePicker.css";
 import dayjs from 'dayjs';
+import { message } from 'antd';
 
 const { Option } = Select;
 const { Step } = Steps;
@@ -138,28 +139,37 @@ const vehicleCategoryQuestions = [
 
 // Deserialize formData using dayjs
 const deserializeFormData = (formData) => {
-  return {
-    form1: { ...formData.form1 },
-    form2: { ...formData.form2 },
-    form3: { ...formData.form3 },
-    form4: {
-      ...formData.form4,
-      summerDate: Array.isArray(formData.form4.summerDate)
-        ? formData.form4.summerDate.map((date) => dayjs(date))
-        : [dayjs(formData.form4.summerDate), dayjs(formData.form4.summerDate)],
-      winterDate: Array.isArray(formData.form4.winterDate)
-        ? formData.form4.winterDate.map((date) => dayjs(date))
-        : [dayjs(formData.form4.winterDate), dayjs(formData.form4.winterDate)],
-      s_pks: formData.form4.s_pks ? dayjs(formData.form4.s_pks, 'HH:mm') : null,
-      s_pke: formData.form4.s_pke ? dayjs(formData.form4.s_pke, 'HH:mm') : null,
-      s_ops: formData.form4.s_ops ? dayjs(formData.form4.s_ops, 'HH:mm') : null,
-      s_ope: formData.form4.s_ope ? dayjs(formData.form4.s_ope, 'HH:mm') : null,
-      w_pks: formData.form4.w_pks ? dayjs(formData.form4.w_pks, 'HH:mm') : null,
-      w_pke: formData.form4.w_pke ? dayjs(formData.form4.w_pke, 'HH:mm') : null,
-      w_ops: formData.form4.w_ops ? dayjs(formData.form4.w_ops, 'HH:mm') : null,
-      w_ope: formData.form4.w_ope ? dayjs(formData.form4.w_ope, 'HH:mm') : null,
-    },
-  };
+  if (!formData) return null;
+
+  // Handle case where formData is the root object with form1, form2 etc.
+  if (formData.form1 || formData.form2 || formData.form3 || formData.form4) {
+    return {
+      form1: {
+        ...formData.form1,
+        category_data: Array.isArray(formData.form1?.category_data)
+          ? formData.form1.category_data
+          : []
+      },
+      form2: {
+        ...formData.form2,
+        vehicle_category_data: Array.isArray(formData.form2?.vehicle_category_data)
+          ? formData.form2.vehicle_category_data
+          : []
+      },
+      form3: { ...formData.form3 },
+      form4: {
+        ...formData.form4,
+        summer_date: [
+          dayjs(formData.form4?.summer_date?.[0]),
+          dayjs(formData.form4?.summer_date?.[1])
+        ],
+        winter_date: [
+          dayjs(formData.form4?.winter_date?.[0]),
+          dayjs(formData.form4?.winter_date?.[1])
+        ]
+      }
+    };
+  }
 };
 
 export const PredictionForm = () => {
@@ -178,7 +188,7 @@ export const PredictionForm = () => {
   const [formData, setFormData] = useState(null);
   const [categoryOptions, setCategoryOptions] = useState(initOptions);
   const [vehiCategoryOptions, setVehiCategoryOptions] = useState(initCategories);
-  const [loadSplit, setLoadSplit] = useState(null);
+  const [loadSplit, setLoadSplit] = useState('no');
   const [currentStep, setCurrentStep] = useState(0);
 
   // Memoize templateData to stabilize useEffect
@@ -194,62 +204,151 @@ export const PredictionForm = () => {
     return data;
   }, [location.state?.templateData]);
 
-  // Prefill forms with template data if available
   useEffect(() => {
     console.log('PredictionForm useEffect triggered with templateData:', templateData);
-    if (templateData) {
+    if (!templateData) {
+      console.log('No templateData provided, skipping form initialization');
+      return;
+    }
+
+    try {
       const deserializedData = deserializeFormData(templateData);
-      form1.setFieldsValue({
-        ...deserializedData.form1,
-        categoryData: deserializedData.form1.categoryData,
-      });
-      setLoadSplit(deserializedData.form1.isLoadSplit);
-      form2.setFieldsValue({
-        ...deserializedData.form2,
-        vehicleCategoryData: deserializedData.form2.vehicleCategoryData,
-      });
-      form3.setFieldsValue({
-        resolution: deserializedData.form3.resolution,
-        BR_F: deserializedData.form3.BR_F,
-        sharedSavaing: deserializedData.form3.sharedSavaing,
-        sum_pk_cost: deserializedData.form3.sum_pk_cost,
-        sum_zero_cost: deserializedData.form3.sum_zero_cost,
-        sum_op_cost: deserializedData.form3.sum_op_cost,
-        win_pk_cost: deserializedData.form3.win_pk_cost,
-        win_zero_cost: deserializedData.form3.win_zero_cost,
-        win_op_cost: deserializedData.form3.win_op_cost,
-      });
-      form4.setFieldsValue({
-        ...deserializedData.form4,
-        summerDate: deserializedData.form4.summerDate,
-        winterDate: deserializedData.form4.winterDate,
-        s_pks: deserializedData.form4.s_pks,
-        s_pke: deserializedData.form4.s_pke,
-        s_ops: deserializedData.form4.s_ops,
-        s_ope: deserializedData.form4.s_ope,
-        w_pks: deserializedData.form4.w_pks,
-        w_pke: deserializedData.form4.w_pke,
-        w_ops: deserializedData.form4.w_ops,
-        w_ope: deserializedData.form4.w_ope,
-      });
-      deserializedData.form1.categoryData.forEach((item) => {
-        if (item.category) {
-          updateCategoryOptions(item.category);
-        }
-      });
-      deserializedData.form2.vehicleCategoryData.forEach((item) => {
-        if (item.vehicleCategory) {
-          updateVehicleCategoryOptions(item.vehicleCategory);
-        }
-      });
-      setFormData(deserializedData);
-      if (deserializedData.form1.isLoadSplit === 'no') {
-        notification.info({
-          message: 'File Upload Required',
-          description: 'Please upload the electricity load data file to proceed with the analysis.',
-          placement: 'bottomRight',
-        });
+      console.log('Deserialized data:', deserializedData);
+
+      if (!deserializedData) {
+        throw new Error('Deserialized data is invalid or empty');
       }
+
+      // Delay form initialization to ensure Ant Design forms are ready
+      setTimeout(() => {
+        // Initialize form1
+        if (deserializedData.form1) {
+          const form1Values = {
+            loadCategory: deserializedData.form1.load_category?.toString() ?? '1',
+            isLoadSplit: 'no', // Force isLoadSplit to 'no'
+            isLoadSplitFile: deserializedData.form1.is_load_split_file
+              ? [{
+                uid: '-1',
+                name: deserializedData.form1.is_load_split_file.split('/').pop() || 'Uploaded File',
+                status: 'done',
+                url: deserializedData.form1.is_load_split_file,
+                response: { file: deserializedData.form1.is_load_split_file },
+              }]
+              : [],
+            categoryData: Array.isArray(deserializedData.form1.category_data)
+              ? deserializedData.form1.category_data.map(item => ({
+                category: item.category ?? '',
+                specifySplit: item.specifySplit?.toString() ?? '',
+                salesCAGR: item.salesCAGR?.toString() ?? '',
+              }))
+              : [],
+          };
+          console.log('Setting form1 values:', form1Values);
+          form1.setFieldsValue(form1Values);
+          setLoadSplit('no'); // Ensure loadSplit is 'no'
+        }
+
+        // Initialize form2
+        if (deserializedData.form2) {
+          const form2Values = {
+            numOfvehicleCategory: deserializedData.form2.num_of_vehicle_category?.toString() ?? '1',
+            vehicleCategoryData: Array.isArray(deserializedData.form2.vehicle_category_data)
+              ? deserializedData.form2.vehicle_category_data.map(item => ({
+                vehicleCategory: item.vehicleCategory ?? '',
+                n: item.n?.toString() ?? '',
+                f: item.f?.toString() ?? '',
+                c: item.c?.toString() ?? '',
+                p: item.p?.toString() ?? '',
+                e: item.e?.toString() ?? '',
+                r: item.r?.toString() ?? '',
+                k: item.k?.toString() ?? '',
+                l: item.l?.toString() ?? '',
+                g: item.g?.toString() ?? '',
+                h: item.h?.toString() ?? '',
+                s: item.s?.toString() ?? '',
+                u: item.u?.toString() ?? '',
+                CAGR_V: item.CAGR_V?.toString() ?? '',
+                baseElectricityTariff: item.baseElectricityTariff?.toString() ?? '',
+              }))
+              : [],
+          };
+          console.log('Setting form2 values:', form2Values);
+          form2.setFieldsValue(form2Values);
+        }
+
+        // Initialize form3
+        if (deserializedData.form3) {
+          const form3Values = {
+            resolution: deserializedData.form3.resolution?.toString() ?? '30',
+            BR_F: deserializedData.form3.br_f?.toString() ?? '80',
+            sharedSavaing: deserializedData.form3.shared_saving?.toString() ?? '20',
+            sum_pk_cost: deserializedData.form3.sum_pk_cost?.toString() ?? '7',
+            sum_zero_cost: deserializedData.form3.sum_zero_cost?.toString() ?? '8',
+            sum_op_cost: deserializedData.form3.sum_op_cost?.toString() ?? '6',
+            win_pk_cost: deserializedData.form3.win_pk_cost?.toString() ?? '5',
+            win_zero_cost: deserializedData.form3.win_zero_cost?.toString() ?? '3',
+            win_op_cost: deserializedData.form3.win_op_cost?.toString() ?? '2',
+          };
+          console.log('Setting form3 values:', form3Values);
+          form3.setFieldsValue(form3Values);
+        }
+
+        // Initialize form4
+        if (deserializedData.form4) {
+          const parseTimeString = (timeStr) => {
+            if (!timeStr) return null;
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return dayjs().set('hour', hours).set('minute', minutes).set('second', 0);
+          };
+
+          const form4Values = {
+            summerDate: Array.isArray(deserializedData.form4.summer_date)
+              ? deserializedData.form4.summer_date.map(date => dayjs(date))
+              : [],
+            winterDate: Array.isArray(deserializedData.form4.winter_date)
+              ? deserializedData.form4.winter_date.map(date => dayjs(date))
+              : [],
+            s_pks: parseTimeString(deserializedData.form4.s_pks),
+            s_pke: parseTimeString(deserializedData.form4.s_pke),
+            s_ops: parseTimeString(deserializedData.form4.s_ops),
+            s_ope: parseTimeString(deserializedData.form4.s_ope),
+            w_pks: parseTimeString(deserializedData.form4.w_pks),
+            w_pke: parseTimeString(deserializedData.form4.w_pke),
+            w_ops: parseTimeString(deserializedData.form4.w_ops),
+            w_ope: parseTimeString(deserializedData.form4.w_ope),
+            s_sx: deserializedData.form4.s_sx?.toString() ?? '10',
+            s_rb: deserializedData.form4.s_rb?.toString() ?? '20',
+            w_sx: deserializedData.form4.w_sx?.toString() ?? '20',
+            w_rb: deserializedData.form4.w_rb?.toString() ?? '15',
+          };
+          console.log('Setting form4 values:', form4Values);
+          form4.setFieldsValue(form4Values);
+        }
+
+        // Update selected categories
+        if (deserializedData.form1?.category_data) {
+          deserializedData.form1.category_data.forEach(item => {
+            if (item?.category) {
+              updateCategoryOptions(item.category);
+            }
+          });
+        }
+
+        // Update selected vehicle categories
+        if (deserializedData.form2?.vehicle_category_data) {
+          deserializedData.form2.vehicle_category_data.forEach(item => {
+            if (item?.vehicleCategory) {
+              updateVehicleCategoryOptions(item.vehicleCategory);
+            }
+          });
+        }
+
+        // Set formData state
+        setFormData(deserializedData);
+      }, 0);
+    } catch (error) {
+      console.error('Error initializing form with template data:', error);
+      message.error('Failed to load template data');
     }
   }, [templateData, form1, form2, form3, form4]);
 
@@ -316,13 +415,18 @@ export const PredictionForm = () => {
     if (currentStep < stepperSize - 1) {
       if (currentStep === 0) {
         form1.validateFields().then((value) => {
-          if (!value.isLoadSplitFile?.file?.response?.file) {
+          // Check if isLoadSplitFile has a valid file
+          const hasValidFile = value.isLoadSplitFile && value.isLoadSplitFile.length > 0 && value.isLoadSplitFile[0]?.status === 'done';
+
+          if (value.isLoadSplit === 'no' && !hasValidFile) {
             setError("Data File is not uploaded");
-          } else {
-            setFormData({ ...formData, form1: value });
-            setCurrentStep(currentStep + 1);
+            return;
           }
-        }).catch(() => {
+
+          setFormData({ ...formData, form1: value });
+          setCurrentStep(currentStep + 1);
+        }).catch((err) => {
+          console.error('Form 1 validation error:', err);
           setError('Please fill in all required fields correctly.');
         });
       } else if (currentStep === 1) {
@@ -438,8 +542,8 @@ export const PredictionForm = () => {
           s_ope: safeFormat(value.s_ope, "HH:mm"),
           w_ops: safeFormat(value.w_ops, "HH:mm"),
           w_ope: safeFormat(value.w_ope, "HH:mm"),
-          isLoadSplitFile: formData.form1?.isLoadSplitFile?.file?.response?.file || null,
-          fileId: formData.form1?.isLoadSplitFile?.file?.response?.id || null,
+          isLoadSplitFile: formData.form1?.isLoadSplitFile?.[0]?.response?.file || null,
+          fileId: formData.form1?.isLoadSplitFile?.[0]?.response?.id || null,
         };
 
         try {
@@ -493,44 +597,33 @@ export const PredictionForm = () => {
                 <Step title={data.title} key={i + 1}></Step>
               ))}
             </Steps>
-
             {currentStep === 0 && (
               <Form
                 className="wri_form"
                 autoComplete="off"
                 layout="vertical"
                 form={form1}
+                initialValues={{
+                  isLoadSplit: 'no', // Set default value to 'no'
+                }}
                 onFinish={(value) => {
                   setFormData((prevValue) => ({
                     ...prevValue,
-                    form1: value,
+                    form1: { ...value, isLoadSplit: 'no' }, // Ensure isLoadSplit is 'no' in form data
                   }));
                   setCurrentStep((prevValue) => prevValue + 1);
                 }}
                 onValuesChange={(changeValues, allValues) => {
                   const data = Object.entries(changeValues);
 
-                  if (
-                    data[0][0] === "categoryData" ||
-                    data[0][0] === "isLoadSplit" ||
-                    data[0][0] === "loadCategory"
-                  ) {
+                  if (data[0][0] === "categoryData" || data[0][0] === "loadCategory") {
                     resetCategoryOptions();
                   }
 
-                  if (
-                    (data[0][0] === "loadCategory" ||
-                      data[0][0] === "isLoadSplit") &&
-                    +allValues.loadCategory < 7 &&
-                    +allValues.loadCategory > 0 &&
-                    allValues.isLoadSplit
-                  ) {
+                  if (data[0][0] === "loadCategory" && +allValues.loadCategory < 7 && +allValues.loadCategory > 0) {
                     form1.setFieldsValue({
                       categoryData: new Array(+allValues.loadCategory).fill({}),
                     });
-                    if (data[0][0] === "isLoadSplit") {
-                      setLoadSplit(data[0][1]);
-                    }
                   }
 
                   if (data[0][0] === "categoryData") {
@@ -593,60 +686,83 @@ export const PredictionForm = () => {
                       <Input type="number" min={1} disabled={isanalysisLoading} />
                     </Form.Item>
                   </Col>
-                  <Col span={12}>
+                </Row>
+                <Row
+                  gutter={20}
+                  className="uploadfield_row"
+                  style={{ marginBottom: "2rem" }}
+                >
+                  <Col span={24}>
+                    <span className="ant-download ant-download-select">
+                      <a href={sempleExcelFile} download>
+                        <FileDownloadIcon />Download sample file
+                      </a>
+                    </span>
                     <Form.Item
-                      label="Do you have separate electricity load data for each of these consumers?"
-                      name="isLoadSplit"
+                      className="upload_field"
+                      label="Upload the electricity load data file"
+                      name="isLoadSplitFile"
                       rules={[
                         {
                           required: true,
-                          message: "Load category is required",
+                          message: "Please, upload a file",
+                          validator: (_, value) => {
+                            if (value && value.length > 0 && value[0]?.status === 'done') {
+                              return Promise.resolve();
+                            }
+                            return Promise.reject('Please, upload a file');
+                          },
                         },
                       ]}
+                      valuePropName="fileList"
+                      getValueFromEvent={(e) => {
+                        if (Array.isArray(e)) {
+                          return e;
+                        }
+                        return e && e.fileList;
+                      }}
                     >
-                      <Select disabled={isanalysisLoading}>
-                        <Option value="yes" disabled>
-                          Yes
-                        </Option>
-                        <Option value="no">No</Option>
-                      </Select>
+                      <Upload
+                        {...uploadProps}
+                        disabled={isanalysisLoading}
+                        beforeUpload={(file) => {
+                          const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.type === 'application/vnd.ms-excel';
+                          if (!isExcel) {
+                            notification.error({
+                              message: 'Invalid File Type',
+                              description: 'You can only upload Excel/CSV files!',
+                              placement: 'bottomRight',
+                            });
+                            return Upload.LIST_IGNORE;
+                          }
+                          return true;
+                        }}
+                        onChange={(info) => {
+                          if (info.file.status === "done") {
+                            notification.success({
+                              message: "File Uploaded Successfully",
+                              placement: "bottomRight",
+                            });
+                            form1.setFieldsValue({
+                              isLoadSplitFile: info.fileList,
+                            });
+                          } else if (info.file.status === "error") {
+                            notification.error({
+                              message: "Error while uploading File, Please Upload again",
+                              placement: "bottomRight",
+                            });
+                          }
+                        }}
+                      >
+                        <FileUploadIcon />
+                        <p className="upload_field_text">
+                          The file format could be Excel/CSV.
+                        </p>
+                        <AntdButton className="form_btn">Upload File</AntdButton>
+                      </Upload>
                     </Form.Item>
                   </Col>
                 </Row>
-                {loadSplit && loadSplit === "no" && (
-                  <Row
-                    gutter={20}
-                    className="uploadfield_row"
-                    style={{ marginBottom: "2rem" }}
-                  >
-                    <Col span={24}>
-                      <span className="ant-download ant-download-select">
-                        <a href={sempleExcelFile} download>
-                          <FileDownloadIcon />Download sample file
-                        </a>
-                      </span>
-                      <Form.Item
-                        className="upload_field"
-                        label="Upload the electricity load data file"
-                        name="isLoadSplitFile"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please, upload a file",
-                          },
-                        ]}
-                      >
-                        <Upload {...uploadProps} disabled={isanalysisLoading}>
-                          <FileUploadIcon />
-                          <p className="upload_field_text">
-                            The file format could be Excel/CSV.
-                          </p>
-                          <AntdButton className="form_btn">Upload File</AntdButton>
-                        </Upload>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                )}
 
                 <Form.List name="categoryData">
                   {(fields, { add, remove }) => (
@@ -683,67 +799,43 @@ export const PredictionForm = () => {
                             </Form.Item>
                           </Col>
                           <Col xs={{ span: 24 }} md={{ span: 8 }}>
-                            {loadSplit && loadSplit === "yes" && (
-                              <Form.Item
-                                className="upload_field small form-list-label"
-                                label={
-                                  index === 0
-                                    ? "Upload the electricity load data file"
-                                    : null
-                                }
-                                name={[field.name, "categoryFile"]}
-                                fieldKey={[field.fieldKey, "categoryFile"]}
-                                rules={[
-                                  {
-                                    required: true,
-                                    message: "Data File is Required for Each Category",
-                                  },
-                                ]}
-                              >
-                                <Upload {...uploadProps} disabled={isanalysisLoading}>
-                                  <AntdButton className="form_btn">Upload file</AntdButton>
-                                </Upload>
-                              </Form.Item>
-                            )}
-                            {loadSplit && loadSplit === "no" && (
-                              <Form.Item
-                                className="form-list-label"
-                                label={
-                                  index === 0 ? (
-                                    <span>
-                                      Specify electricity load share (%){" "}
-                                      <Popover
-                                        content={() =>
-                                          content(
-                                            "Total values across all categories should equal 100"
-                                          )
-                                        }
-                                        trigger="hover"
-                                      >
-                                        <span className="infoBubble">
-                                          <img src={Info_icon} />
-                                        </span>
-                                      </Popover>
-                                    </span>
-                                  ) : null
-                                }
-                                name={[field.name, "specifySplit"]}
-                                fieldKey={[field.fieldKey, "specifySplit"]}
-                                rules={[
-                                  {
-                                    required: true,
-                                    message: "Split Percentage is Required",
-                                  },
-                                  Helpers.moreThanZeroValidator("Split Percentage"),
-                                ]}
-                              >
-                                <Input
-                                  type="number"
-                                  suffix="%"
-                                  disabled={isanalysisLoading}
-                                />
-                              </Form.Item>
-                            )}
+                            <Form.Item
+                              className="form-list-label"
+                              label={
+                                index === 0 ? (
+                                  <span>
+                                    Specify electricity load share (%){" "}
+                                    <Popover
+                                      content={() =>
+                                        content(
+                                          "Total values across all categories should equal 100"
+                                        )
+                                      }
+                                      trigger="hover"
+                                    >
+                                      <span className="infoBubble">
+                                        <img src={Info_icon} />
+                                      </span>
+                                    </Popover>
+                                  </span>
+                                ) : null
+                              }
+                              name={[field.name, "specifySplit"]}
+                              fieldKey={[field.fieldKey, "specifySplit"]}
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Split Percentage is Required",
+                                },
+                                Helpers.moreThanZeroValidator("Split Percentage"),
+                              ]}
+                            >
+                              <Input
+                                type="number"
+                                suffix="%"
+                                disabled={isanalysisLoading}
+                              />
+                            </Form.Item>
                           </Col>
                           <Col xs={{ span: 24 }} md={{ span: 8 }}>
                             <Form.Item
@@ -770,8 +862,8 @@ export const PredictionForm = () => {
                               name={[field.name, "salesCAGR"]}
                               fieldKey={[field.fieldKey, "salesCAGR"]}
                               rules={[
-                                { required: true, message: "Split Percentage is Required" },
-                                Helpers.moreThanZeroValidator("Split Percentage"),
+                                { required: true, message: "CAGR is Required" },
+                                Helpers.moreThanZeroValidator("CAGR"),
                               ]}
                             >
                               <Input

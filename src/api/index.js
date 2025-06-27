@@ -48,6 +48,13 @@ export const ApiService = {
       },
     });
   },
+  getTemplates() {
+    return axios.get(`${API_BASE_URL}/admin_panel/api/templates/`, {
+      headers: {
+        Authorization: `Token ${Helpers.getCookie("idToken")}`,
+      },
+    });
+  },
   decodeToken(token) {
     return axios.get(`${API_BASE_URL}/admin_panel/api/invitation/${token}`);
   },
